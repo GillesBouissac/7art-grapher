@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html style="width:100%;height:100%;margin:0;"> 
+    <meta charset="utf-8">
+    <title>serverperso - histo</title>
+
+    <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
+    <script type="text/javascript" src="graph-scaleband.js"></script>
+    <script type="text/javascript" src="legend.js"></script>
+    <script type="text/javascript" src="range-selector.js"></script>
+
+    <script type="text/javascript" defer="defer">
+        window.onload = function(){
+            width  = window.innerWidth;
+            height = window.innerHeight;
+            const url           = new URL(window.location.href);
+            const type          = url.searchParams.get("type");
+            const sortColumn    = url.searchParams.get("sortColumn");
+            const displayColumn = url.searchParams.get("displayColumn");
+            const start         = url.searchParams.get("start");
+            const end           = url.searchParams.get("end");
+            plotScaleBand(type, width, height, sortColumn, displayColumn, start, end);
+        }
+    </script>
+
+    <body style="width:100%;height:100%;margin:0;">
+        <div id="graph-goes-here"></div>
+    </body>
+
+</html> 

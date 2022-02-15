@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html style="width:100%;height:100%;margin:0;"> 
     <meta charset="utf-8">
-    <title>serverperso - histo</title>
+    <title>serverperso - barchart</title>
 
     <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
-    <script type="text/javascript" src="graph-scaleband.js"></script>
+    <script type="text/javascript" src="graph-barchart.js"></script>
     <script type="text/javascript" src="legend.js"></script>
     <script type="text/javascript" src="range-selector.js"></script>
 
@@ -18,7 +18,7 @@
             const displayColumn = url.searchParams.get("displayColumn");
             const start         = url.searchParams.get("start");
             const end           = url.searchParams.get("end");
-            plotScaleBand(type, width, height, sortColumn, displayColumn, start, end);
+            plotBarchart(type, width, height, sortColumn, displayColumn, start, end);
         }
     </script>
 

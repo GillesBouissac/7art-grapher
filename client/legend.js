@@ -34,7 +34,7 @@ const interactiveLegend = function ( svg, x, y ) {
 
     const legendBbox = legendG.append("rect")
         .classed("legendBbox", true)
-        .style("fill", "lightgrey")
+        .style("fill", "white")
         .style("fill-opacity", "90%")
         .on("click", function(e) {
             e.stopPropagation();

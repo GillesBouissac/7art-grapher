@@ -1,6 +1,6 @@
 const range = (s, e) => e > s ? [s, ...range(s + 1, e)] : [s];
 
-const plotScaleBand = function ( datatype, width, height, sortColumn, displayColumn, start, end ) {
+const plotBarchart = function ( datatype, width, height, sortColumn, displayColumn, start, end ) {
 
     width = width==null ? window.innerWidth : width;
     height = height==null ? window.innerHeight : height;
@@ -24,7 +24,7 @@ const plotScaleBand = function ( datatype, width, height, sortColumn, displayCol
     const yAxis = d3.axisLeft(y);
 
     // Colors for series
-    const serieColor = d3.scaleOrdinal().range(d3[`schemeSet1`])
+    const serieColor = d3.scaleOrdinal().range(d3.schemeSpectral[10])
 
     // The list of columns will not change
     let columns = [];

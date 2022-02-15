@@ -10,7 +10,7 @@
     <meta name="author" content="Pascal Piazzalungua, Gilles Bouissac, and Serverperso contributors">
 
     <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
-    <script type="text/javascript" src="graph-scaleband.js"></script>
+    <script type="text/javascript" src="graph-barchart.js"></script>
     <script type="text/javascript" src="legend.js"></script>
     <script type="text/javascript" src="range-selector.js"></script>
 
@@ -31,7 +31,7 @@
 
             const container = d3.select("#graph-goes-here");
             const width = container.node().clientWidth;
-            plotScaleBand(type, width, width*3/4, sortColumn, null, start, end);
+            plotBarchart(type, width, width*3/4, sortColumn, null, start, end);
         }
     </script>
 

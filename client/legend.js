@@ -71,8 +71,9 @@ const interactiveLegend = function ( svg, x, y ) {
                 .classed("legendDots", true)
                 .on("click", function(e) {
                     e.stopPropagation();
+                    const wasOpened = showAll;
                     showAll = true;
-                    d3.select(this).each(d => legend.toggle(d));
+                    d3.select(this).each(d => wasOpened?legend.toggle(d):legend.update());
                 })
                 .transition(transition)
                 .attr("x", legendPos.x)
@@ -88,8 +89,9 @@ const interactiveLegend = function ( svg, x, y ) {
                 .classed("legendLabels", true)
                 .on("click", function(e) {
                     e.stopPropagation();
+                    const wasOpened = showAll;
                     showAll = true;
-                    d3.select(this).each(d => legend.toggle(d));
+                    d3.select(this).each(d => wasOpened?legend.toggle(d):legend.update());
                 })
                 .transition(transition)
                 .attr("x", legendPos.x + legendSize*1.2)

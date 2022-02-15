@@ -1,10 +1,10 @@
 
-const rangeSelector = function ( svg ) {
+const rangeSelector = function ( svg, width, height ) {
     let _selector = null;
     let _onMovedCb = null;
     const _scale = d3.scaleLinear();
-    const _width = svg.node() ? svg.node().parentNode.getClientRects()[0].width : 0 ;
-    const _height = 40;
+    const _width = width==null?(svg.node() ? svg.node().parentNode.getClientRects()[0].width : 40) : width ;
+    const _height = height==null?40:height;
     const _margin = ({top: 1, right: 1, bottom: 1, left: 1});
     const _minWidth = 3;
 

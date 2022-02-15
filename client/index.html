@@ -24,12 +24,23 @@
             </a>
         </header>
 
-        <div class="p-2 mb-4 bg-light rounded-3">
-            <div class="container-fluid py-1">
-                <h1>Films</h1>
-                <div class="ratio ratio-21x9">
-                    <iframe src="/thunbnail-barchart.html?type=years&displayColumn=1&start=-40" scrolling="no"></iframe>
-                    <div class="btn" onClick="document.location.href='/page-barchart.html?title=Films&type=years&displayColumn=1&start=-40'"></div>
+        <div class="row align-items-md-stretch">
+            <div class="col-md-6">
+                <div class="container-fluid py-1">
+                    <h2>Films</h2>
+                    <div class="ratio ratio-21x9">
+                        <iframe src="/thunbnail-barchart.html?type=years&displayColumn=1&start=-40" scrolling="no"></iframe>
+                        <div class="btn" onClick="document.location.href='/page-barchart.html?title=Films&type=years&displayColumn=1&start=-40'"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="container-fluid py-1">
+                    <h2>Countries</h2>
+                    <div class="ratio ratio-21x9">
+                        <iframe src="/thunbnail-barchart.html?type=countries&displayColumn=1&sortColumn=1&start=0&end=40" scrolling="no"></iframe>
+                        <div class="btn" onClick="document.location.href='/page-barchart.html?title=Countries&type=countries&displayColumn=1&sortColumn=1&start=0&end=40'"></div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,4 +1,3 @@
-const range = (s, e) => e > s ? [s, ...range(s + 1, e)] : [s];
 
 const plotBarchart = function ( datatype, width, height, sortColumn, displayColumn, start, end ) {
 
@@ -73,7 +72,7 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
         const keys = subset.map(e => e[0]);
         let columnsIndexes = [];
         if ( displayColumn==null || displayColumn<1 || displayColumn>columns.length-1 ) {
-            columnsIndexes = range(1,columns.length-1);
+            columnsIndexes = d3.range(1,columns.length);
         }
         else if ( Array.isArray(displayColumn) ) {
             columnsIndexes = displayColumn.filter( e => e>=1 && e<=columns.length-1);

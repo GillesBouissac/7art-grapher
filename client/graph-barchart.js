@@ -1,4 +1,6 @@
 
+const logDate = () => (new Date()).toISOString();
+
 const plotBarchart = function ( datatype, width, height, sortColumn, displayColumn, start, end ) {
 
     width = width==null ? window.innerWidth : width;
@@ -7,7 +9,7 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
     displayColumn = displayColumn==null || displayColumn<1 ? null : displayColumn;
 
     // set the dimensions and margins of the graph
-    const margin = { top: 10, right: 10, bottom: 80, left: 60 },
+    const margin = { top: 10, right: 10, bottom: 110, left: 80 },
         plotw = width - margin.left - margin.right,
         ploth = height - margin.top - margin.bottom;
 
@@ -28,7 +30,9 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
     // The list of columns will not change
     let columns = [];
     let data = [];
+    let dataSorted = [];
     let subset = [];
+    let xkeys = [];
     let graphCtrl = {};
 
     // SVG initialisation
@@ -44,7 +48,7 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
     const legendparent = d3.select("#legend-goes-here");
     const embeddedlegend = legendparent.empty();
     const legendsvg = embeddedlegend ? svg : legendparent.append("svg");
-    const legend = interactiveLegend(legendsvg,embeddedlegend?100:0,0)
+    const legend = interactiveLegend(legendsvg,embeddedlegend?200:0,0)
         .onSelectionChanged( newSelection => {
             displayColumn=columns.map( (e,i) => newSelection.includes(e) ? i : 0 );
             graphCtrl.update(subset);
@@ -59,17 +63,17 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
     const selectorparent = d3.select("#range-selector-goes-here");
     const embeddedselector = selectorparent.empty();
     const selectorsvg = selectorparent.append("svg").attr("visible",embeddedselector);
-    const rangeSel = rangeSelector (selectorsvg, selectorsvg.node() ? selectorsvg.node().parentNode.getClientRects()[0].width : 0)
+    const rangeSel = rangeSelectorX (selectorsvg, selectorsvg.node() ? selectorsvg.node().parentNode.getClientRects()[0].width : 0, 40)
         .onMoved( d => {
-            const start = Math.floor(d[0]);
-            const end = Math.floor(d[1]);
-            if (sortColumn!=null && sortColumn>0) subset = data.sort( (a,b) => b[sortColumn]-a[sortColumn]).slice(start,end)
-            else subset = data.slice(start,end)
+            const start = dataSorted.findIndex(e => e[displayColumn-1]==d[0]);
+            const end = dataSorted.findIndex(e => e[displayColumn-1]==d[1]);
+            subset = dataSorted.slice(start,end)
+            xkeys = subset.map(e => e[0]);
             graphCtrl.update(subset);
         });
 
     graphCtrl.update = function ( subset ) {
-        const keys = subset.map(e => e[0]);
+        console.log(`${logDate()} Subset changed`);
         let columnsIndexes = [];
         if ( displayColumn==null || displayColumn<1 || displayColumn>columns.length-1 ) {
             columnsIndexes = d3.range(1,columns.length);
@@ -92,7 +96,7 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
 
         // Updates X scale
            x.range([0, plotw])
-            .domain(keys);
+            .domain(xkeys);
           gx.attr("transform", "translate(0," + ploth + ")")
             .transition(transition)
             .call(xAxis)
@@ -135,21 +139,23 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
             .attr("fill-opacity", "100%");
 
         legend.update(visibleColumns, serieColor);
+        console.log(`${logDate()} Updated`);
     }
 
     // Graph initialisation from data
     const dataPath = `/stats/${datatype}.json`;
+    console.log(`${logDate()} Request ${dataPath}`);
     d3.json(dataPath)
         .then(function (content) {
-
-            console.log(`Received data set ${dataPath} with ${content.data.length} elements`);
+            console.log(`${logDate()} Received data set ${dataPath} with ${content.data.length} elements`);
 
             columns = content.columns;
             data = content.data;
+            dataSorted = (sortColumn!=null && sortColumn>0) ? data.sort( (a,b) => b[sortColumn]-a[sortColumn]) : data;
             serieColor.domain(columns);
             legend.allseries(columns.slice(1));
             legend.allcolors(serieColor);
-            rangeSel.domain([0,data.length-1]);
+            rangeSel.scale().domain(dataSorted.map(e => e[0]));
 
             // Rescaling IMDb ratings
             const imdbpattern = "(Average|Minimum|Maximum).*IMDb.*rating"
@@ -159,9 +165,11 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
             end = (end==null||end>data.length) ? data.length : end;
             start = start==null ? 0 : parseInt(start,10);
             start = start<0 ? (data.length + start) : start;
-            if (sortColumn!=null && sortColumn>0) subset = data.sort( (a,b) => b[sortColumn]-a[sortColumn]).slice(start,end)
-            else subset = data.slice(start,end)
-            rangeSel.move([start,end-1]);
+
+            subset = dataSorted.slice(start,end)
+            xkeys = subset.map(e => e[0]);
+
+            rangeSel.move([ dataSorted[start][0], dataSorted[end-1][0] ]);
             graphCtrl.update(subset);
         });
 

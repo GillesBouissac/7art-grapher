@@ -4,14 +4,15 @@ const logDate = () => (new Date()).toISOString();
 
 /**
  * Compares 2 strings using alphanumeric algorithm (debian version comparator).
- * ex: "2zzz" < "20aaa"
- *     "2zzz3yy" < "2aaa30b"
+ * ex: "2" < "20"
+ *     "2aaa3yy" < "2aaa30b"
+ *     "2aaa3yy" < "2zzz3yy"
  * 
  * @param {string} a 
  * @param {string} b 
  * @returns -1/0/+1
  */
-const alphaCmp = (a,b) => (""+a).localeCompare((""+b),undefined,{numeric:true,sensitivity:'base'});
+const compareAlphanumeric = (a,b) => (""+a).localeCompare((""+b),undefined,{numeric:true,sensitivity:'base'});
 
 /**
  * Constructs the heatmap data and graphics.
@@ -63,6 +64,9 @@ const plotHeatmap = function ( datatype, width, height ) {
     // Graph controller
     let graphCtrl = {};
 
+    // Tooltip
+    const tooltip = new Tooltip();
+
     // SVG initialisation
     const graphparent = d3.select("#graph-goes-here");
     const svg = graphparent.append("svg")
@@ -96,6 +100,15 @@ const plotHeatmap = function ( datatype, width, height ) {
             graphCtrl.subsetChanged();
         });
 
+    tooltipBody = function (parent, d) {
+        parent.node().innerHTML =
+        `<div class="row row-cols-2">
+            <div class="col">Horizontal</div><div class="col">${d[1]}</div>
+            <div class="col">Vertical</div><div class="col">${d[2]}</div>
+            <div class="col">Number of films</div><div class="col">${d[3]}</div>
+        </div>`;
+    }
+
     /**
      * Update graphics.
      */
@@ -122,15 +135,17 @@ const plotHeatmap = function ( datatype, width, height ) {
                 enter.append("rect")
                 .attr("x", plotw/2)
                 .attr("y", ploth/2)
+                .attr("fill", d => serieColor(d[3]))
+                .attr("fill-opacity", "100%")
+                .classed("dot", true)
+                .on("mouseover", function(_,d) { tooltip.body(tooltipBody, d).track(this) })
             )
-            .classed("dot", true)
             .transition(transition)
             .attr("x", d => x(d[1]))
             .attr("y", d => y(d[2]))
             .attr("width", x.bandwidth())
             .attr("height", y.bandwidth())
-            .attr("fill", d => serieColor(d[3]))
-            .attr("fill-opacity", "100%");
+            ;
         console.log(`${logDate()} Updated`);
     }
 
@@ -168,10 +183,10 @@ const plotHeatmap = function ( datatype, width, height ) {
         const xkeyset = Array.from(unorderedSerieValuesX.keys());
         const ykeyset = Array.from(unorderedSerieValuesY.keys());
 
-        if ( sortAlphaSeries.includes(serieNameX) ) subsetX = xkeyset.sort((a,b) => alphaCmp(a,b));
+        if ( sortAlphaSeries.includes(serieNameX) ) subsetX = xkeyset.sort((a,b) => compareAlphanumeric(a,b));
         else subsetX = xkeyset.sort((a,b) => unorderedSerieValuesX.compareByCount(a,b));
 
-        if ( sortAlphaSeries.includes(serieNameY) ) subsetY = ykeyset.sort((a,b) => alphaCmp(a,b));
+        if ( sortAlphaSeries.includes(serieNameY) ) subsetY = ykeyset.sort((a,b) => compareAlphanumeric(a,b));
         else subsetY = ykeyset.sort((a,b) => unorderedSerieValuesY.compareByCount(a,b));
 
         subsetX = (subsetX.length>maximumSerieItem) ? subsetX.slice(-maximumSerieItem) : subsetX;
@@ -232,5 +247,4 @@ const plotHeatmap = function ( datatype, width, height ) {
 
             graphCtrl.seriesChanged();
         });
-
 }

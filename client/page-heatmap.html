@@ -24,14 +24,15 @@
             const url = new URL(window.location.href);
             const title = url.searchParams.get("title");
             const type = url.searchParams.get("type");
+            const maxStopsX = url.searchParams.get("maxStopsX");
+            const maxStopsY = url.searchParams.get("maxStopsY");
             const titledom = d3.select("#page-title");
-            titledom.text(title);
+            if(title) titledom.text(title);
 
             const container = d3.select("#graph-goes-here");
             const width = container.node().clientWidth;
-            plotHeatmap(type, width, width * 3 / 4);
+            plotHeatmap(type, width, width * 3 / 4, maxStopsX, maxStopsY);
         }
-
     </script>
 </head>
 
@@ -40,10 +41,10 @@
         <div class="d-grid gap-3" style="grid-template-columns: 1fr 2fr 1fr;">
             <div></div>
             <div class="row align-items-md-stretch">
-                <header class="pb-3 mb-2 col-md-4">
+                <header class="pb-3 mb-2 col-md-6">
                     <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
                         <img src="https://www.vigibot.com/ihm/robot02.png">
-                        <h1 id="page-title" class="display-5 fw-bold">Serverperso 7th art grapher</h1>
+                        <h1 id="page-title" class="display-5 fw-bold">2D Correlation</h1>
                     </a>
                 </header>
             </div>
@@ -51,15 +52,34 @@
         </div>
         <div class="d-grid gap-3" style="grid-template-columns: 1fr 2fr 1fr;">
             <div>
-                <div class="form-floating mb-4 mx-4">
-                    <select id="selectorY" class="form-select" aria-label="Selector for y data to show on Y">
-                    </select>
-                    <label for="selectorY">Vertical axis</label>
-                </div>
-                <div class="form-floating mb-4 mx-4">
-                    <select id="selectorX" class="form-select" aria-label="Selector for data to show on X">
-                    </select>
-                    <label for="selectorX">Horizontal axis</label>
+                <div class="row row-cols-sm-2">
+                    <div class="col-md-6 text-end">
+                        <label class="col-form-label" for="selectorY">Vertical axis</label>
+                    </div>
+                    <div class="col-md-6">
+                        <select id="selectorY" class="form-select" aria-label="Selector for y data to show on Y"></select>
+                    </div>
+
+                    <div class="col-md-6 text-end">
+                        <label class="col-form-label" for="maximumAxisStopsY">Maximum vertical stops</label>
+                    </div>
+                    <div class="col-md-6 mb-5">
+                        <input id="maximumAxisStopsY" type="number" class="form-control" aria-label="Set the maximum number of elements in series"></input>
+                    </div>
+
+                    <div class="col-md-6 text-end">
+                        <label class="col-form-label" for="selectorX">Horizontal axis</label>
+                    </div>
+                    <div class="col-md-6">
+                        <select id="selectorX" class="form-select" aria-label="Selector for data to show on X"></select>
+                    </div>
+
+                    <div class="col-md-6 text-end">
+                        <label class="col-form-label" for="maximumAxisStopsX">Maximum horizontal stops</label>
+                    </div>
+                    <div class="col-md-6">
+                        <input id="maximumAxisStopsX" type="number" class="form-control" aria-label="Set the maximum number of elements in series"></input>
+                    </div>
                 </div>
             </div>
             <div>

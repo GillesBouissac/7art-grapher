@@ -21,15 +21,16 @@ const compareAlphanumeric = (a,b) => (""+a).localeCompare((""+b),undefined,{nume
  * @param {number} width 
  * @param {number} height 
  */
-const plotHeatmap = function ( datatype, width, height ) {
+const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
 
     width = width==null ? window.innerWidth : width;
     height = height==null ? window.innerHeight : height;
+    maxStopsX = maxStopsX==null ? 500 : maxStopsX;
+    maxStopsY = maxStopsY==null ? 500 : maxStopsY;
 
     // Default selected series
     const defaultSerieX = "Year";
     const defaultSerieY = "Countries";
-    const maximumSerieItem = 500;
 
     // set the dimensions and margins of the graph
     const margin = { top: 10, right: 10, bottom: 80, left: 130 },
@@ -103,8 +104,8 @@ const plotHeatmap = function ( datatype, width, height ) {
     tooltipBody = function (parent, d) {
         parent.node().innerHTML =
         `<div class="row row-cols-2">
-            <div class="col">Horizontal</div><div class="col">${d[1]}</div>
             <div class="col">Vertical</div><div class="col">${d[2]}</div>
+            <div class="col">Horizontal</div><div class="col">${d[1]}</div>
             <div class="col">Number of films</div><div class="col">${d[3]}</div>
         </div>`;
     }
@@ -172,7 +173,7 @@ const plotHeatmap = function ( datatype, width, height ) {
     }
 
     const sortAlphaSeries = [
-        "Year", "IMDb rating", "Rotten Tomatoes rating", "IMDb ID", "TMDB ID"
+        "Year", "IMDb rating", "Rotten Tomatoes rating", "IMDb ID", "TMDB ID", "Runtime"
     ];
     /**
      * Update series according to series selectors
@@ -189,8 +190,8 @@ const plotHeatmap = function ( datatype, width, height ) {
         if ( sortAlphaSeries.includes(serieNameY) ) subsetY = ykeyset.sort((a,b) => compareAlphanumeric(a,b));
         else subsetY = ykeyset.sort((a,b) => unorderedSerieValuesY.compareByCount(a,b));
 
-        subsetX = (subsetX.length>maximumSerieItem) ? subsetX.slice(-maximumSerieItem) : subsetX;
-        subsetY = (subsetY.length>maximumSerieItem) ? subsetY.slice(-maximumSerieItem) : subsetY;
+        subsetX = (subsetX.length>maxStopsX) ? subsetX.slice(-maxStopsX) : subsetX;
+        subsetY = (subsetY.length>maxStopsY) ? subsetY.slice(-maxStopsY) : subsetY;
 
         console.log(`${logDate()} Series changed`);
 
@@ -214,6 +215,18 @@ const plotHeatmap = function ( datatype, width, height ) {
     onChangeSerieY = function(value) {
         const changed = value!=serieNameY;
         serieNameY = value;
+        if (changed) graphCtrl.seriesChanged();
+    }
+
+    onChangeMaxAxisStopsX = function(value) {
+        const changed = value!=maxStopsX;
+        maxStopsX = value;
+        if (changed) graphCtrl.seriesChanged();
+    }
+
+    onChangeMaxAxisStopsY = function(value) {
+        const changed = value!=maxStopsY;
+        maxStopsY = value;
         if (changed) graphCtrl.seriesChanged();
     }
 
@@ -244,6 +257,12 @@ const plotHeatmap = function ( datatype, width, height ) {
                 .attr("onchange", "onChangeSerieX(this.value);");
             d3.select("#selectorY")
                 .attr("onchange", "onChangeSerieY(this.value);");
+            d3.select("#maxStopsX")
+                .property("value", maxStopsX)
+                .attr("onchange", "onChangeMaxAxisStopsX(this.value);");
+            d3.select("#maxStopsY")
+                .property("value", maxStopsY)
+                .attr("onchange", "onChangeMaxAxisStopsY(this.value);");
 
             graphCtrl.seriesChanged();
         });

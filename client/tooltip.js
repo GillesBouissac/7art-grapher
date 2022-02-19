@@ -14,6 +14,7 @@ class Tooltip {
         this._tiptoast = d3.select(node ? node : "main")
             .append("div")
             .classed("toast", true)
+            .classed("container", true)
             .attr("role", "alert")
             .style("display", "none")
             .style("position", "fixed");

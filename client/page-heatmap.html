@@ -36,65 +36,67 @@
     </script>
 </head>
 
-<main>
-    <div class="container-fluid">
-        <div class="d-grid gap-3" style="grid-template-columns: 1fr 2fr 1fr;">
-            <div></div>
-            <div class="row align-items-md-stretch">
-                <header class="pb-3 mb-2 col-md-6">
-                    <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
-                        <img src="https://www.vigibot.com/ihm/robot02.png">
-                        <h1 id="page-title" class="display-5 fw-bold">2D Correlation</h1>
-                    </a>
-                </header>
+<body class="bg-dark text-white">
+    <main>
+        <div class="container-fluid">
+            <div class="d-grid gap-3" style="grid-template-columns: 1fr 2fr 1fr;">
+                <div></div>
+                <div class="row align-items-md-stretch">
+                    <header class="pb-3 mb-2 col-md-6">
+                        <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+                            <img src="https://www.vigibot.com/ihm/robot02.png">
+                            <h1 id="page-title" class="display-5 fw-bold">2D Correlation</h1>
+                        </a>
+                    </header>
+                </div>
+                <div></div>
             </div>
-            <div></div>
-        </div>
-        <div class="d-grid gap-3" style="grid-template-columns: 1fr 2fr 1fr;">
-            <div>
-                <div class="row row-cols-sm-2">
-                    <div class="col-md-6 text-end">
-                        <label class="col-form-label" for="selectorY">Vertical axis</label>
-                    </div>
-                    <div class="col-md-6">
-                        <select id="selectorY" class="form-select" aria-label="Selector for y data to show on Y"></select>
-                    </div>
+            <div class="d-grid gap-3" style="grid-template-columns: 1fr 2fr 1fr;">
+                <div>
+                    <div class="row row-cols-sm-2">
+                        <div class="col-md-6 text-end">
+                            <label class="col-form-label" for="selectorY">Vertical axis</label>
+                        </div>
+                        <div class="col-md-6">
+                            <select id="selectorY" class="form-select" aria-label="Selector for y data to show on Y"></select>
+                        </div>
 
-                    <div class="col-md-6 text-end">
-                        <label class="col-form-label" for="maxStopsY">Maximum vertical stops</label>
-                    </div>
-                    <div class="col-md-6 mb-5">
-                        <input id="maxStopsY" type="number" class="form-control" aria-label="Set the maximum number of elements in series"></input>
-                    </div>
+                        <div class="col-md-6 text-end">
+                            <label class="col-form-label" for="maxStopsY">Maximum vertical stops</label>
+                        </div>
+                        <div class="col-md-6 mb-5">
+                            <input id="maxStopsY" type="number" class="form-control" aria-label="Set the maximum number of elements in series"></input>
+                        </div>
 
-                    <div class="col-md-6 text-end">
-                        <label class="col-form-label" for="selectorX">Horizontal axis</label>
-                    </div>
-                    <div class="col-md-6">
-                        <select id="selectorX" class="form-select" aria-label="Selector for data to show on X"></select>
-                    </div>
+                        <div class="col-md-6 text-end">
+                            <label class="col-form-label" for="selectorX">Horizontal axis</label>
+                        </div>
+                        <div class="col-md-6">
+                            <select id="selectorX" class="form-select" aria-label="Selector for data to show on X"></select>
+                        </div>
 
-                    <div class="col-md-6 text-end">
-                        <label class="col-form-label" for="maxStopsX">Maximum horizontal stops</label>
-                    </div>
-                    <div class="col-md-6">
-                        <input id="maxStopsX" type="number" class="form-control" aria-label="Set the maximum number of elements in series"></input>
+                        <div class="col-md-6 text-end">
+                            <label class="col-form-label" for="maxStopsX">Maximum horizontal stops</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input id="maxStopsX" type="number" class="form-control" aria-label="Set the maximum number of elements in series"></input>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div>
-                <div class="row mb-4 mx-auto bg-light">
-                    <div id="graph-goes-here"></div>
-                </div>
+                <div>
+                    <div class="row mb-4 mx-auto">
+                        <div id="graph-goes-here"></div>
+                    </div>
 
-                <footer class="pt-3 mt-4 text-muted border-top">
-                    &copy; serverperso.com 2022
-                </footer>
-            </div>
-            <div class="col mx-auto">
-                <div id="range-selector-goes-here" class="row bg-light"></div>
+                    <footer class="pt-3 mt-4 text-muted border-top">
+                        &copy; serverperso.com 2022
+                    </footer>
+                </div>
+                <div class="col mx-auto">
+                    <div id="range-selector-goes-here" class="row"></div>
+                </div>
             </div>
         </div>
-    </div>
-</main>
+    </main>
+</body>
 </html>

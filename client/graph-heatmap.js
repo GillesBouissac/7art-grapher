@@ -73,6 +73,9 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
     const svg = graphparent.append("svg")
         .attr("width", width)
         .attr("height", height)
+        .style("fill", "currentColor")
+        .style("background-color", "#333")
+
     const graph = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     const gx = graph.append("g");
@@ -80,7 +83,11 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
 
     const selectorparent = d3.select("#range-selector-goes-here");
     const embeddedselector = selectorparent.empty();
-    const selectorsvg = selectorparent.append("svg").attr("visible",embeddedselector);
+    const selectorsvg = selectorparent.append("svg")
+        .attr("visible",embeddedselector)
+        .style("fill", "currentColor")
+        .style("background-color", "#333")
+
     const selectorW = svg.node() ? svg.node().parentNode.getClientRects()[0].width/3 : 50;
     const rangeSel = rangeSelectorXY (selectorsvg, selectorW, selectorW )
         .onMoved( (pt1, pt2) => {
@@ -101,7 +108,7 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
             graphCtrl.subsetChanged();
         });
 
-    tooltipBody = function (parent, d) {
+    tooltipBuilder = function (parent, d) {
         parent.node().innerHTML =
         `<div class="row row-cols-2">
             <div class="col">Vertical</div><div class="col">${d[2]}</div>
@@ -139,7 +146,7 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
                 .attr("fill", d => serieColor(d[3]))
                 .attr("fill-opacity", "100%")
                 .classed("dot", true)
-                .on("mouseover", function(_,d) { tooltip.body(tooltipBody, d).track(this) })
+                .on("mouseover", function(_,d) { tooltip.body(tooltipBuilder, d).track(this) })
             )
             .transition(transition)
             .attr("x", d => x(d[1]))

@@ -35,11 +35,17 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
     let xkeys = [];
     let graphCtrl = {};
 
+    // Tooltip
+    const tooltip = new Tooltip();
+
     // SVG initialisation
     const graphparent = d3.select("#graph-goes-here");
     const svg = graphparent.append("svg")
         .attr("width", width)
         .attr("height", height)
+        .style("fill", "currentColor")
+        .style("background-color", "#333")
+
     const graph = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     const gx = graph.append("g");
@@ -47,7 +53,10 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
 
     const legendparent = d3.select("#legend-goes-here");
     const embeddedlegend = legendparent.empty();
-    const legendsvg = embeddedlegend ? svg : legendparent.append("svg");
+    const legendsvg = embeddedlegend ? svg : legendparent.append("svg")
+        .style("fill", "currentColor")
+        .style("background-color", "#333")
+
     const legend = interactiveLegend(legendsvg,embeddedlegend?200:0,0)
         .onSelectionChanged( newSelection => {
             displayColumn=columns.map( (e,i) => newSelection.includes(e) ? i : 0 );
@@ -62,7 +71,11 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
 
     const selectorparent = d3.select("#range-selector-goes-here");
     const embeddedselector = selectorparent.empty();
-    const selectorsvg = selectorparent.append("svg").attr("visible",embeddedselector);
+    const selectorsvg = selectorparent.append("svg")
+        .attr("visible",embeddedselector)
+        .style("fill", "currentColor")
+        .style("background-color", "#333")
+
     const rangeSel = rangeSelectorX (selectorsvg, selectorsvg.node() ? selectorsvg.node().parentNode.getClientRects()[0].width : 0, 40)
         .onMoved( d => {
             const start = dataSorted.findIndex(e => e[displayColumn-1]==d[0]);
@@ -72,6 +85,15 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
             graphCtrl.update(subset);
         });
 
+    tooltipBuilder = function (parent, d) {
+        parent.node().innerHTML =
+        `<div class="row row-md-2 text-nowrap">
+            <div class="col-4">Serie</div><div class="col-6">${d[2]}</div>
+            <div class="col-4">Vertical</div><div class="col-6">${d[1]}</div>
+            <div class="col-4">Horizontal</div><div class="col-6">${d[0]}</div>
+        </div>`;
+    }
+    
     graphCtrl.update = function ( subset ) {
         console.log(`${logDate()} Subset changed`);
         let columnsIndexes = [];
@@ -128,6 +150,7 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
                 .attr("y", function (d) { return ploth; })
                 .attr("width", 0)
                 .attr("height", 0)
+                .on("mouseover", function(_,d) { tooltip.body(tooltipBuilder, d).track(this) })
             )
             .classed("bars", true)
             .transition(transition)

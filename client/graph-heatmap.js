@@ -23,10 +23,10 @@ const compareAlphanumeric = (a,b) => (""+a).localeCompare((""+b),undefined,{nume
  */
 const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
 
-    width = width==null ? window.innerWidth : width;
-    height = height==null ? window.innerHeight : height;
-    maxStopsX = maxStopsX==null ? 500 : maxStopsX;
-    maxStopsY = maxStopsY==null ? 500 : maxStopsY;
+    width     = isNaN(parseInt(width,10)) ? window.innerWidth : parseInt(width,10);
+    height    = isNaN(parseInt(height,10)) ? window.innerHeight : parseInt(height,10);
+    maxStopsX = isNaN(parseInt(maxStopsX,10)) ? 500 : parseInt(maxStopsX,10);
+    maxStopsY = isNaN(parseInt(maxStopsY,10)) ? 500 : parseInt(maxStopsY,10);
 
     // Default selected series
     const defaultSerieX = "Year";
@@ -134,8 +134,8 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
             .data(subset, d=> d[0])
             .join(enter =>
                 enter.append("rect")
-                .attr("x", plotw/2)
-                .attr("y", ploth/2)
+                .attr("x", d => x(d[1])+x.bandwidth()/2)
+                .attr("y", d => y(d[2])+y.bandwidth()/2)
                 .attr("fill", d => serieColor(d[3]))
                 .attr("fill-opacity", "100%")
                 .classed("dot", true)

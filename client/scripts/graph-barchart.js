@@ -11,6 +11,7 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
     const margin = { top: 10, right: 10, bottom: 110, left: 80 },
         plotw = width - margin.left - margin.right,
         ploth = height - margin.top - margin.bottom;
+    const fontSize = 10;
 
     // Create X axis scale
     const xscale = d3.scaleBand().padding(0.5);
@@ -113,9 +114,18 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
 
         const transition = d3.transition().duration(500);
 
-        // Updates X scale
-        xscale.range([0, plotw])
-              .domain(xkeys);
+        // X scale
+        xscale.range([0, plotw]).domain(xkeys);
+        // Sub X scale
+        sx.domain(visibleColumns);
+        // Y scale
+        yscale.domain([0, maxy]).range([ploth, 0]);
+
+        // reduces the number of X axis ticks to avoid overlap
+        let bwCount = Math.ceil(fontSize/xscale.bandwidth());
+        let ticks = xkeys.filter(function(v, i) { return i % bwCount === 0; });
+        xAxis.tickValues(ticks);
+
             gx.attr("transform", "translate(0," + ploth + ")")
               .transition(transition)
               .call(xAxis)
@@ -123,12 +133,6 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
               .attr("transform", "translate(-10,0)rotate(-45)")
               .style("text-anchor", "end");
 
-        // Updates sub X scale
-            sx.domain(visibleColumns);
-
-        // Updates Y scale according to new data
-        yscale.domain([0, maxy])
-              .range([ploth, 0]);
             gy.attr("transform", "translate(0,0)")
               .transition(transition)
               .call(yAxis)

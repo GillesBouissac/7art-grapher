@@ -16,12 +16,12 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
     // Default selected series
     const defaultSerieX = "Year";
     const defaultSerieY = "Countries";
-    const nbColors = 100;
 
     // set the dimensions and margins of the graph
     const margin = { top: 10, right: 10, bottom: 80, left: 130 },
         plotw = width - margin.left - margin.right,
         ploth = height - margin.top - margin.bottom;
+    const fontSize = 10;
 
     // Create X axis scale
     const xscale = d3.scaleBand().range([0, plotw]).padding(0.05);
@@ -33,6 +33,25 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
 
     // Colors for series
     const serieColor = colorScale();
+
+    // Initial sort criteria
+    const defaultSortCriteria = SerieElement.SortCriteriaCount;
+    let sortCriteria = {
+        "Year": [SerieElement.SortCriteriaKey],
+        "IMDb rating": [SerieElement.SortCriteriaKey],
+        "Rotten Tomatoes rating": [SerieElement.SortCriteriaKey],
+        "IMDb ID": [SerieElement.SortCriteriaKey],
+        "TMDB ID": [SerieElement.SortCriteriaKey],
+        "Runtime": [SerieElement.SortCriteriaKey]
+    };
+    let numericSeries = [
+        "Year",
+        "Runtime",
+        "IMDb rating",
+        "Rotten Tomatoes rating",
+        "IMDb ID",
+        "TMDB ID",
+    ];
 
     // Received data
     let titles = new TitleData();
@@ -178,6 +197,16 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
         xminiscale.domain(subsetX);
         yminiscale.domain(subsetY);
 
+        // reduces the number of X axis ticks to avoid overlap
+        let bwCount = Math.ceil(fontSize/xscale.bandwidth());
+        let ticks = subsetX.filter(function(v, i) { return i % bwCount === 0; });
+        xAxis.tickValues(ticks);
+
+        // reduces the number of Y axis ticks to avoid overlap
+        bwCount = Math.ceil(fontSize/yscale.bandwidth());
+        ticks = subsetY.filter(function(v, i) { return i % bwCount === 0; });
+        yAxis.tickValues(ticks);
+
         let max = 0;
         subset = [];
         subsetX.forEach(x => {
@@ -192,31 +221,38 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
         return max;
     }
 
-    const sortAlphaSeries = [
-        "Year", "IMDb rating", "Rotten Tomatoes rating", "IMDb ID", "TMDB ID", "Runtime"
-    ];
+    /** Returns the list of serie elements sorted according to selected criteria */
+    const sortedSerieElements = function(serieName) {
+        const allValues = titles.series(serieName);
+        const keyset = Array.from(allValues.keys());
+        const criteria = sortCriteria.hasOwnProperty(serieName) ? sortCriteria[serieName] : [defaultSortCriteria]
+
+        let result = 0;
+        return keyset.sort(function(a,b){
+            const ela = allValues.get(a);
+            const elb = allValues.get(b);
+            for (let criterion of criteria) {
+                result = ela.compareBySerie(criterion, elb);
+                if (result!=0) break;
+            }
+            return result;
+        });
+    }
+
     /**
      * Update series according to series selectors
      */
     graphCtrl.seriesChanged = function() {
-        const unorderedSerieValuesX = titles.series(serieNameX);
-        const unorderedSerieValuesY = titles.series(serieNameY);
-        const xkeyset = Array.from(unorderedSerieValuesX.keys());
-        const ykeyset = Array.from(unorderedSerieValuesY.keys());
-
-        if ( sortAlphaSeries.includes(serieNameX) ) subsetX = xkeyset.sort((a,b) => compareAlphanumeric(a,b));
-        else subsetX = xkeyset.sort((a,b) => unorderedSerieValuesX.compareElementByCount(a,b));
-
-        if ( sortAlphaSeries.includes(serieNameY) ) subsetY = ykeyset.sort((a,b) => compareAlphanumeric(a,b));
-        else subsetY = ykeyset.sort((a,b) => unorderedSerieValuesY.compareElementByCount(a,b));
-
+        subsetX = sortedSerieElements(serieNameX);
         subsetX = (subsetX.length>maxStopsX) ? subsetX.slice(-maxStopsX) : subsetX;
-        subsetY = (subsetY.length>maxStopsY) ? subsetY.slice(-maxStopsY) : subsetY;
 
-        console.log(`${logDate()} Series changed`);
+        subsetY = sortedSerieElements(serieNameY);
+        subsetY = (subsetY.length>maxStopsY) ? subsetY.slice(-maxStopsY) : subsetY;
 
         serieValuesX = subsetX;
         serieValuesY = subsetY;
+
+        console.log(`${logDate()} Series changed`);
 
         rangeSel.scaleX().domain(serieValuesX);
         rangeSel.scaleY().domain(serieValuesY);
@@ -227,6 +263,24 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
         serieColor.count(max);
         graphCtrl.update();
         graphCtrl.updateMinimap();
+    }
+
+    onChangeSortX = function(value, n) {
+        if (!sortCriteria.hasOwnProperty(serieNameX)) {
+            sortCriteria[serieNameX] = [];
+        }
+        const changed = sortCriteria[serieNameX][n] != value;
+        sortCriteria[serieNameX][n] = value;
+        if (changed) graphCtrl.seriesChanged();
+    }
+
+    onChangeSortY = function(value, n) {
+        if (!sortCriteria.hasOwnProperty(serieNameY)) {
+            sortCriteria[serieNameY] = [];
+        }
+        const changed = sortCriteria[serieNameY][n] != value;
+        sortCriteria[serieNameY][n] = value;
+        if (changed) graphCtrl.seriesChanged();
     }
 
     onChangeSerieX = function(value) {
@@ -266,16 +320,35 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
             titles.parse(content);
             console.log(`${logDate()} Data parsed`);
 
+            d3.select("#sortX1").append("option").text(SerieElement.SortCriteriaNone)
+                .call(function(s) { if(sortCriteria[serieNameX] && sortCriteria[serieNameX].includes(SerieElement.SortCriteriaNone)) s.attr("selected","true") });
+            d3.select("#sortX1").append("option").text(SerieElement.SortCriteriaKey)
+                .call(function(s) { if(sortCriteria[serieNameX] && sortCriteria[serieNameX].includes(SerieElement.SortCriteriaKey)) s.attr("selected","true") });
+            d3.select("#sortX1").append("option").text(defaultSortCriteria)
+                .call(function(s) { if(!sortCriteria[serieNameX] || sortCriteria[serieNameX].includes(defaultSortCriteria)) s.attr("selected","true") });
+            d3.select("#sortY1").append("option").text(SerieElement.SortCriteriaNone)
+                .call(function(s) { if(sortCriteria[serieNameY] && sortCriteria[serieNameY].includes(SerieElement.SortCriteriaNone)) s.attr("selected","true") });
+            d3.select("#sortY1").append("option").text(SerieElement.SortCriteriaKey)
+                .call(function(s) { if(sortCriteria[serieNameY] && sortCriteria[serieNameY].includes(SerieElement.SortCriteriaKey)) s.attr("selected","true") });
+            d3.select("#sortY1").append("option").text(defaultSortCriteria)
+                .call(function(s) { if(!sortCriteria[serieNameY] || sortCriteria[serieNameY].includes(defaultSortCriteria)) s.attr("selected","true") });
             titles.columns().forEach( (c,i) => {
-                d3.select("#selectorX")
-                    .append("option")
-                    .text(c)
+                d3.select("#selectorX").append("option").text(c)
                     .call(function(s) { if(c==defaultSerieX) s.attr("selected","true") });
-                d3.select("#selectorY")
-                    .append("option")
-                    .text(c)
+                d3.select("#selectorY").append("option").text(c)
                     .call(function(s) { if(c==defaultSerieY) s.attr("selected","true") });
+                if (numericSeries.includes(c)) {
+                    d3.select("#sortX1").append("option").text(c)
+                        .call(function(s) { if(sortCriteria[serieNameX] && sortCriteria[serieNameX].includes(c)) s.attr("selected","true") });
+                    d3.select("#sortY1").append("option").text(c)
+                        .call(function(s) { if(sortCriteria[serieNameY] && sortCriteria[serieNameY].includes(c)) s.attr("selected","true") });
+                }
             });
+
+            d3.select("#sortX1")
+                .attr("onchange", "onChangeSortX(this.value,0);");
+            d3.select("#sortY1")
+                .attr("onchange", "onChangeSortY(this.value,0);");
             d3.select("#selectorX")
                 .attr("onchange", "onChangeSerieX(this.value);");
             d3.select("#selectorY")

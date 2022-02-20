@@ -27,9 +27,55 @@ const TitleColName = "Title";
 /**
  * Map of data for one serie element.
  */
- class SerieElement extends AutoMap {
+class SerieElement extends AutoMap {
+    static SortCriteriaKey = "Etiquette";
+    static SortCriteriaCount = "Nombre de films";
+    static SortCriteriaNone = "---";
+
+    constructor(name) {
+        super();
+        this._name = name;
+        this._averages = {};
+    }
     getOrCreate(key) {
         return super.computeIfAbsent(key, () => new Film());
+    }
+    /** Name accessor. */
+    name() {return this._name; }
+    /** Film serie average accessor. */
+    average(serie) {
+        if (!this._averages.hasOwnProperty(serie)) {
+            this._averages[serie] = 0;
+            if (this.size>0) {
+                let sum=0;
+                this.forEach(film => {
+                    const filmElems = Array.from(film.get(serie).keys());
+                    const vals = filmElems.map(e=>{
+                        const val = parseFloat(e);
+                        if (isNaN(val)) return 0;
+                        return val;
+                    });
+                    sum += vals.reduce((p,c)=>p+c,0);
+                });
+                this._averages[serie] = sum/this.size;
+            }
+        }
+        return this._averages[serie];
+    }
+    /** Compares 2 elements of by name. */
+    compareByName(b) {
+        return compareAlphanumeric(this._name,b._name);
+    }
+    /** Compares 2 elements of by film count. */
+    compareByCount(b) {
+        return this.size - b.size;
+    }
+    /** Compares 2 elements of by film serie value. */
+    compareBySerie(serie,b) {
+        if ( serie==SerieElement.SortCriteriaNone ) return 0;
+        if ( serie==SerieElement.SortCriteriaKey ) return this.compareByName(b);
+        if ( serie==SerieElement.SortCriteriaCount ) return this.compareByCount(b);
+        return this.average(serie) - b.average(serie);
     }
 }
 
@@ -37,18 +83,8 @@ const TitleColName = "Title";
  * Map of data for one serie.
  */
 class Serie extends AutoMap {
-    /**
-     * Compares 2 serie elements of this serie by film count.
-     * 
-     * @param {*} a 
-     * @param {*} b 
-     * @returns -1/0/+1
-     */
-     compareElementByCount(a,b) {
-        return this.get(a).size - this.get(b).size;
-    }
     getOrCreate(key) {
-        return super.computeIfAbsent(key, () => new SerieElement());
+        return super.computeIfAbsent(key, () => new SerieElement(key));
     }
 }
 

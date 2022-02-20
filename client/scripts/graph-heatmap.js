@@ -24,12 +24,12 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
         ploth = height - margin.top - margin.bottom;
 
     // Create X axis scale
-    const x = d3.scaleBand().range([0, plotw]).padding(0.05);
-    const xAxis = d3.axisBottom(x);
+    const xscale = d3.scaleBand().range([0, plotw]).padding(0.05);
+    const xAxis = d3.axisBottom(xscale);
 
     // Create Y axis scale
-    const y = d3.scaleBand().range([ploth, 0]).padding(0.05);
-    const yAxis = d3.axisLeft(y);
+    const yscale = d3.scaleBand().range([ploth, 0]).padding(0.05);
+    const yAxis = d3.axisLeft(yscale);
 
     // Colors for series
     const serieColor = colorScale();
@@ -52,7 +52,14 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
     let graphCtrl = {};
 
     // Tooltip
-    const tooltip = new Tooltip();
+    const tooltip = new Tooltip()
+    tooltip.body ( d =>
+        `<div class="row row-cols-2">
+            <div class="col">Vertical</div><div class="col">${d[2]}</div>
+            <div class="col">Horizontal</div><div class="col">${d[1]}</div>
+            <div class="col">Number of films</div><div class="col">${d[3]}</div>
+        </div>`
+    );
 
     // SVG initialisation
     const graphparent = d3.select("#graph-goes-here");
@@ -69,13 +76,15 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
 
     const selectorparent = d3.select("#range-selector-goes-here");
     const embeddedselector = selectorparent.empty();
-    const selectorsvg = selectorparent.append("svg")
+    const minimap = selectorparent.append("svg")
         .attr("visible",embeddedselector)
         .style("fill", "currentColor")
         .style("background-color", "#333")
 
     const selectorW = svg.node() ? svg.node().parentNode.getClientRects()[0].width/3 : 50;
-    const rangeSel = rangeSelectorXY (selectorsvg, selectorW, selectorW )
+    const xminiscale = d3.scaleBand().range([0, selectorW]);
+    const yminiscale = d3.scaleBand().range([selectorW, 0]);
+    const rangeSel = rangeSelectorXY (minimap, selectorW, selectorW )
         .onMoved( (pt1, pt2) => {
             subsetX = [];
             subsetY = [];
@@ -94,15 +103,7 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
             graphCtrl.subsetChanged();
             graphCtrl.update();
         });
-
-    tooltipBuilder = function (parent, d) {
-        parent.node().innerHTML =
-        `<div class="row row-cols-2">
-            <div class="col">Vertical</div><div class="col">${d[2]}</div>
-            <div class="col">Horizontal</div><div class="col">${d[1]}</div>
-            <div class="col">Number of films</div><div class="col">${d[3]}</div>
-        </div>`;
-    }
+    svg.on("wheel", rangeSel.onWheel());
 
     /**
      * Update graphics.
@@ -128,20 +129,41 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
             .data(subset, d=> d[0])
             .join(enter =>
                 enter.append("rect")
-                .attr("x", d => x(d[1])+x.bandwidth()/2)
-                .attr("y", d => y(d[2])+y.bandwidth()/2)
-                .attr("fill", d => serieColor(d[3]))
+                .attr("x", d => xscale(d[1])+xscale.bandwidth()/2)
+                .attr("y", d => yscale(d[2])+yscale.bandwidth()/2)
                 .attr("fill-opacity", "100%")
                 .classed("dot", true)
-                .on("mouseover", function(_,d) { tooltip.body(tooltipBuilder, d).track(this) })
+                .on("mouseover", tooltip.show())
             )
+            .attr("fill", d => serieColor(d[3]))
             .transition(transition)
-            .attr("x", d => x(d[1]))
-            .attr("y", d => y(d[2]))
-            .attr("width", x.bandwidth())
-            .attr("height", y.bandwidth())
+            .attr("x", d => xscale(d[1]))
+            .attr("y", d => yscale(d[2]))
+            .attr("width", xscale.bandwidth())
+            .attr("height", yscale.bandwidth())
             ;
-        console.log(`${logDate()} Updated`);
+        console.log(`${logDate()} main map updated`);
+    }
+
+    graphCtrl.updateMinimap = function () {
+        // Update heatmap
+        minimap.selectAll(".minidot")
+            .data(subset, d=> d[0])
+            .join(enter =>
+                enter.append("rect")
+                .attr("x", d => xminiscale(d[1])+xminiscale.bandwidth()/2)
+                .attr("y", d => yminiscale(d[2])+yminiscale.bandwidth()/2)
+                .attr("fill-opacity", "100%")
+                .classed("minidot", true)
+            )
+            .attr("fill", d => serieColor(d[3]))
+            .attr("x", d => xminiscale(d[1]))
+            .attr("y", d => yminiscale(d[2]))
+            .attr("width", xminiscale.bandwidth())
+            .attr("height", yminiscale.bandwidth())
+            ;
+        rangeSel.raise();
+        console.log(`${logDate()} minimap updated`);
     }
 
     /**
@@ -151,8 +173,10 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
      * @param {*} ykeyset Values on Y
      */
     graphCtrl.subsetChanged = function() {
-        x.domain(subsetX);
-        y.domain(subsetY);
+        xscale.domain(subsetX);
+        yscale.domain(subsetY);
+        xminiscale.domain(subsetX);
+        yminiscale.domain(subsetY);
 
         let max = 0;
         subset = [];
@@ -181,10 +205,10 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
         const ykeyset = Array.from(unorderedSerieValuesY.keys());
 
         if ( sortAlphaSeries.includes(serieNameX) ) subsetX = xkeyset.sort((a,b) => compareAlphanumeric(a,b));
-        else subsetX = xkeyset.sort((a,b) => unorderedSerieValuesX.compareByCount(a,b));
+        else subsetX = xkeyset.sort((a,b) => unorderedSerieValuesX.compareElementByCount(a,b));
 
         if ( sortAlphaSeries.includes(serieNameY) ) subsetY = ykeyset.sort((a,b) => compareAlphanumeric(a,b));
-        else subsetY = ykeyset.sort((a,b) => unorderedSerieValuesY.compareByCount(a,b));
+        else subsetY = ykeyset.sort((a,b) => unorderedSerieValuesY.compareElementByCount(a,b));
 
         subsetX = (subsetX.length>maxStopsX) ? subsetX.slice(-maxStopsX) : subsetX;
         subsetY = (subsetY.length>maxStopsY) ? subsetY.slice(-maxStopsY) : subsetY;
@@ -202,6 +226,7 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
         const max = graphCtrl.subsetChanged();
         serieColor.count(max);
         graphCtrl.update();
+        graphCtrl.updateMinimap();
     }
 
     onChangeSerieX = function(value) {

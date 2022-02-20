@@ -9,13 +9,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="46.176224mm"
-   height="40.431431mm"
-   viewBox="0 0 46.176223 40.43143"
+   width="36.176224mm"
+   height="30.431433mm"
+   viewBox="0 0 36.176223 30.431432"
    version="1.1"
    id="svg8"
    inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
-   sodipodi:docname="logo-invert.svg">
+   sodipodi:docname="logo-blue.svg">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -26,8 +26,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8284271"
-     inkscape:cx="178.69009"
-     inkscape:cy="9.8683561"
+     inkscape:cx="78.298395"
+     inkscape:cy="-10.443491"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -36,10 +36,10 @@
      inkscape:window-x="72"
      inkscape:window-y="27"
      inkscape:window-maximized="1"
-     fit-margin-top="5"
-     fit-margin-left="5"
-     fit-margin-right="5"
-     fit-margin-bottom="5"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
      inkscape:snap-global="false"
      inkscape:snap-midpoints="true"
      inkscape:snap-bbox="true"
@@ -59,8 +59,8 @@
        type="xygrid"
        id="grid815"
        units="mm"
-       originx="-56.114272"
-       originy="-232.07269" />
+       originx="-61.114271"
+       originy="-237.07268" />
   </sodipodi:namedview>
   <metadata
      id="metadata5">
@@ -78,7 +78,7 @@
      inkscape:label="Calque 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-56.114276,-24.495842)"
+     transform="translate(-61.114276,-29.495842)"
      style="display:inline">
     <path
        style="opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.99999988;stroke-miterlimit:4;stroke-dasharray:none"

@@ -9,9 +9,9 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="52.31625mm"
-   height="45.222767mm"
-   viewBox="0 0 52.316249 45.222766"
+   width="42.31625mm"
+   height="35.222767mm"
+   viewBox="0 0 42.316249 35.222766"
    version="1.1"
    id="svg8"
    inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
@@ -26,8 +26,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.979899"
-     inkscape:cx="329.11795"
-     inkscape:cy="53.945471"
+     inkscape:cx="193.80023"
+     inkscape:cy="33.027532"
      inkscape:document-units="mm"
      inkscape:current-layer="g977"
      showgrid="true"
@@ -36,16 +36,16 @@
      inkscape:window-x="72"
      inkscape:window-y="27"
      inkscape:window-maximized="1"
-     fit-margin-top="5"
-     fit-margin-left="5"
-     fit-margin-right="5"
-     fit-margin-bottom="5">
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0">
     <inkscape:grid
        type="xygrid"
        id="grid815"
        units="mm"
-       originx="-53.225418"
-       originy="-229.55574" />
+       originx="-58.225414"
+       originy="-234.55574" />
   </sodipodi:namedview>
   <metadata
      id="metadata5">
@@ -63,7 +63,7 @@
      inkscape:label="Calque 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-53.225422,-22.221458)">
+     transform="translate(-58.225422,-27.221458)">
     <g
        id="g977">
       <path

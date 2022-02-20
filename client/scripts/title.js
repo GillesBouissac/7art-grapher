@@ -38,13 +38,13 @@ const TitleColName = "Title";
  */
 class Serie extends AutoMap {
     /**
-     * Compares 2 series by film count.
+     * Compares 2 serie elements of this serie by film count.
      * 
      * @param {*} a 
      * @param {*} b 
      * @returns -1/0/+1
      */
-    compareByCount(a,b) {
+     compareElementByCount(a,b) {
         return this.get(a).size - this.get(b).size;
     }
     getOrCreate(key) {

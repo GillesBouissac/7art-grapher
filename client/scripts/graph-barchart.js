@@ -13,15 +13,15 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
         ploth = height - margin.top - margin.bottom;
 
     // Create X axis scale
-    const x = d3.scaleBand().padding(0.5);
-    const xAxis = d3.axisBottom(x);
+    const xscale = d3.scaleBand().padding(0.5);
+    const xAxis = d3.axisBottom(xscale);
 
     // Create sub X to shift bars on the same X value
     const sx = d3.scaleBand().range([-1, 1]);
 
     // Create Y axis scale
-    const y = d3.scaleLinear();
-    const yAxis = d3.axisLeft(y);
+    const yscale = d3.scaleLinear();
+    const yAxis = d3.axisLeft(yscale);
 
     // Colors for series
     const serieColor = colorScale();
@@ -36,6 +36,13 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
 
     // Tooltip
     const tooltip = new Tooltip();
+    tooltip.body ( d =>
+        `<div class="row row-md-2 text-nowrap">
+            <div class="col-4">Serie</div><div class="col-6">${d[2]}</div>
+            <div class="col-4">Vertical</div><div class="col-6">${d[1]}</div>
+            <div class="col-4">Horizontal</div><div class="col-6">${d[0]}</div>
+        </div>`
+    );
 
     // SVG initialisation
     const graphparent = d3.select("#graph-goes-here");
@@ -77,22 +84,13 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
 
     const rangeSel = rangeSelectorX (selectorsvg, selectorsvg.node() ? selectorsvg.node().parentNode.getClientRects()[0].width : 0, 40)
         .onMoved( d => {
-            const start = dataSorted.findIndex(e => e[displayColumn-1]==d[0]);
-            const end = dataSorted.findIndex(e => e[displayColumn-1]==d[1]);
+            const start = dataSorted.findIndex(e => e[0]==d[0]);
+            const end = dataSorted.findIndex(e => e[0]==d[1]);
             subset = dataSorted.slice(start,end)
             xkeys = subset.map(e => e[0]);
             graphCtrl.update(subset);
         });
 
-    tooltipBuilder = function (parent, d) {
-        parent.node().innerHTML =
-        `<div class="row row-md-2 text-nowrap">
-            <div class="col-4">Serie</div><div class="col-6">${d[2]}</div>
-            <div class="col-4">Vertical</div><div class="col-6">${d[1]}</div>
-            <div class="col-4">Horizontal</div><div class="col-6">${d[0]}</div>
-        </div>`;
-    }
-    
     graphCtrl.update = function ( subset ) {
         console.log(`${logDate()} Subset changed`);
         let columnsIndexes = [];
@@ -116,24 +114,24 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
         const transition = d3.transition().duration(500);
 
         // Updates X scale
-           x.range([0, plotw])
-            .domain(xkeys);
-          gx.attr("transform", "translate(0," + ploth + ")")
-            .transition(transition)
-            .call(xAxis)
-            .selectAll("text")
-            .attr("transform", "translate(-10,0)rotate(-45)")
-            .style("text-anchor", "end");
+        xscale.range([0, plotw])
+              .domain(xkeys);
+            gx.attr("transform", "translate(0," + ploth + ")")
+              .transition(transition)
+              .call(xAxis)
+              .selectAll("text")
+              .attr("transform", "translate(-10,0)rotate(-45)")
+              .style("text-anchor", "end");
 
         // Updates sub X scale
             sx.domain(visibleColumns);
 
         // Updates Y scale according to new data
-           y.domain([0, maxy])
-            .range([ploth, 0]);
-          gy.attr("transform", "translate(0,0)")
-            .transition(transition)
-            .call(yAxis)
+        yscale.domain([0, maxy])
+              .range([ploth, 0]);
+            gy.attr("transform", "translate(0,0)")
+              .transition(transition)
+              .call(yAxis)
 
         // Updates Series
         const gs = graph.selectAll(".series")
@@ -145,18 +143,18 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
         gs.selectAll(".bars")
             .data(s=>s[1], d=>d[0])
             .join(enter => enter.append("rect")
-                .attr("x", function (d) { return x(d[0])+x.bandwidth()*sx(d[2]); })
+                .attr("x", function (d) { return xscale(d[0])+xscale.bandwidth()*sx(d[2]); })
                 .attr("y", function (d) { return ploth; })
                 .attr("width", 0)
                 .attr("height", 0)
-                .on("mouseover", function(_,d) { tooltip.body(tooltipBuilder, d).track(this) })
+                .on("mouseover", tooltip.show())
             )
             .classed("bars", true)
             .transition(transition)
-            .attr("x", function (d) { return x(d[0])+x.bandwidth()*sx(d[2]); })
-            .attr("y", function (d) { return y(d[1]); })
-            .attr("width", x.bandwidth()*1.8/columnsIndexes.length)
-            .attr("height", function (d) { return ploth - y(d[1]); })
+            .attr("x", function (d) { return xscale(d[0])+xscale.bandwidth()*sx(d[2]); })
+            .attr("y", function (d) { return yscale(d[1]); })
+            .attr("width", xscale.bandwidth()*1.8/columnsIndexes.length)
+            .attr("height", function (d) { return ploth - yscale(d[1]); })
             .attr("fill", function(d){return serieColor(d[2]) })
             .attr("fill-opacity", "100%");
 

@@ -20,10 +20,8 @@ class ColorScale extends Function {
     constructor() {
         super();
         this._scale = d3.scaleOrdinal();
-        this._count = 100;
-        this._domain = d3.range(this._count);
-        this._interpolator = d3.piecewise(d3.interpolateHsl, ["blue","Aqua","LawnGreen","yellow","orange","red"]);
-        this.update();
+        this.interpolator(d3.piecewise(d3.interpolateHsl, ["blue","Aqua","LawnGreen","yellow","orange","red"]));
+        this.count(100);
         return new Proxy(this, {
             apply: (target, _, args) => target._call(...args)
         })
@@ -59,9 +57,10 @@ class ColorScale extends Function {
     }
 
     update() {
-        this._scale
-            .range(d3.range(this._count).map((_,i) => this._interpolator(i/(this._count-1))))
-            .domain(this._domain)
+        if (this._domain && this._interpolator)
+            this._scale
+                .range(d3.range(this._count).map((_,i) => this._interpolator(i/(this._count-1))))
+                .domain(this._domain)
     }
 
     _call(args) {

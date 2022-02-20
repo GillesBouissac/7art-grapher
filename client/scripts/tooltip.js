@@ -11,6 +11,7 @@ class Tooltip {
      */
     constructor( node ) {
         this._target = null;
+        this._bodyfn = null;
         this._tiptoast = d3.select(node ? node : "main")
             .append("div")
             .classed("toast", true)
@@ -21,25 +22,25 @@ class Tooltip {
         this._tipbody = this._tiptoast
             .append("div")
             .classed("toast-header", true);
+        this.body("...");
     }
 
     /**
      * Set the body of the tooltip.
      * 
      * @param {*} b Body content, this can be text of a callback.
-     *              call back will be called with tooltip body node
-     *              all other input parameters will be given unchanged
+     *              call back will be called with current datum
+     *              and this is the tooltip dom Node
      * @returns this
      */
     body(b) {
         this._tipbody.selectChildren().remove();
         if(b instanceof Function) {
-            b(this._tipbody, ...Array.from(arguments).slice(1));
+            this._bodyfn = b;
+            //(this._tipbody, ...Array.from(arguments).slice(1));
         }
         else {
-            this._tipbody
-                .append("p")
-                .text(b)
+            this._bodyfn = function(d) { `<p>${b}</p>` };
         }
         return this;
     }
@@ -51,13 +52,27 @@ class Tooltip {
      * @param {*} node 
      * @returns this
      */
-    track(node) {
-        this._tiptoast.style("display", "block")
-            .raise()
-        this._target = d3.select(node)
-            .on("mousemove.tooltip", this.onMouseMove())
-            .on("mouseout.tooltip", this.onMouseLeave());
-        return this;
+    show() {
+        const _this = this;
+        return function (_,d) {
+            if ( _this._bodyfn ) {
+                const res = _this._bodyfn.call(_this._tipbody.node(), d);
+                if (res) _this._tipbody.node().innerHTML = res;
+            }
+            _this._tiptoast.style("display", "block")
+                .raise();
+            _this._target = d3.select(this)
+                .on("mousemove.tooltip", _this.onMouseMove())
+                .on("mouseout.tooltip", _this.onMouseLeave());
+            return _this;
+        }
+    }
+
+    hide() {
+        const _this = this;
+        return function() {
+            _this._hide();
+        }
     }
 
     /**
@@ -65,15 +80,12 @@ class Tooltip {
      * 
      * @returns this
      */
-    hide() {
+    _hide() {
         if (this._target) {
             this._target
                 .on("mouseover.tooltip", null)
                 .on("mouseout.tooltip", null);
-            this._tiptoast
-                .raise();
         }
-        this.body("...");
         this._target = null;
         this._tiptoast.style("display", "none")
         return this;
@@ -103,11 +115,7 @@ class Tooltip {
      * @returns The tracking function
      */
      onMouseLeave() {
-        const _this = this;
-        return function(e) {
-            _this.hide();
-            return this;
-        }
+        return this.hide();
     }
 
 }

@@ -15,7 +15,7 @@ class RangeSelectorBase {
             .append("g")
             .classed("range-selector", true);
 
-        let brush = this.createBrush();
+        let brush = this.createBrush().handleSize(30);
         this._brush = brush;
         this._selectorG
             .call(brush);
@@ -25,6 +25,16 @@ class RangeSelectorBase {
     onMoved(cb) {
         this._onMovedCb = cb;
         return this;
+    }
+
+    onWheel() {
+        return function(e) {
+            e.preventDefault();
+        }
+    }
+
+    raise() {
+        this._selectorG.raise();
     }
 
     createBrush() {}
@@ -64,7 +74,7 @@ class RangeSelectorX extends RangeSelectorBase {
 
     }
     move(d) {
-        const range = [ this._scale(d[0]), this._scale(d[1]) ];
+        const range = [ this._scale(d[0]), this._scale(d[1])+this._scale.bandwidth() ];
         range[1] = (range[0]+this._minWidth)>range[1] ? range[0]+this._minWidth : range[1];
         this._brush.move(this._selectorG, range );
     };
@@ -102,7 +112,7 @@ class RangeSelectorX extends RangeSelectorBase {
     }
     move(pt1,pt2) {
         pt1 = [this._scaleX(pt1[0]),this._scaleY(pt1[1])];
-        pt2 = [this._scaleX(pt2[0]),this._scaleY(pt2[1])];
+        pt2 = [this._scaleX(pt2[0])+this._scaleX.bandwidth(),this._scaleY(pt2[1])+this._scaleY.bandwidth()];
         this._brush.move(this._selectorG, [pt1, pt2] );
     };
 

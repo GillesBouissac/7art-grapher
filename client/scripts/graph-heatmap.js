@@ -1,19 +1,4 @@
 
-
-const logDate = () => (new Date()).toISOString();
-
-/**
- * Compares 2 strings using alphanumeric algorithm (debian version comparator).
- * ex: "2" < "20"
- *     "2aaa3yy" < "2aaa30b"
- *     "2aaa3yy" < "2zzz3yy"
- * 
- * @param {string} a 
- * @param {string} b 
- * @returns -1/0/+1
- */
-const compareAlphanumeric = (a,b) => (""+a).localeCompare((""+b),undefined,{numeric:true,sensitivity:'base'});
-
 /**
  * Constructs the heatmap data and graphics.
  * 
@@ -31,6 +16,7 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
     // Default selected series
     const defaultSerieX = "Year";
     const defaultSerieY = "Countries";
+    const nbColors = 100;
 
     // set the dimensions and margins of the graph
     const margin = { top: 10, right: 10, bottom: 80, left: 130 },
@@ -46,7 +32,7 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
     const yAxis = d3.axisLeft(y);
 
     // Colors for series
-    const serieColor = d3.scaleOrdinal().range(d3.schemeSpectral[10])
+    const serieColor = colorScale();
 
     // Received data
     let titles = new TitleData();
@@ -106,6 +92,7 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
                 if (inRangeY) subsetY.push(y);
             });
             graphCtrl.subsetChanged();
+            graphCtrl.update();
         });
 
     tooltipBuilder = function (parent, d) {
@@ -167,16 +154,18 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
         x.domain(subsetX);
         y.domain(subsetY);
 
+        let max = 0;
         subset = [];
         subsetX.forEach(x => {
             const films = Array.from(titles.series(serieNameX).get(x).values());
             subsetY.forEach(y => {
                 const commons = films.filter(f => f.get(serieNameY).has(y));
+                max = (commons.length<max) ? max : commons.length;
                 if ( commons.length>0 ) subset.push([`${x}:${y}`,x,y,commons.length]);
             });
         });
         console.log(`${logDate()} Subset changed`);
-        graphCtrl.update();
+        return max;
     }
 
     const sortAlphaSeries = [
@@ -210,7 +199,9 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
         rangeSel.move([serieValuesX[0], serieValuesY[serieValuesY.length-1]], [serieValuesX[serieValuesX.length-1], serieValuesY[0]]);
         console.log(`${logDate()} Range selector initialized`);
 
-        graphCtrl.subsetChanged();
+        const max = graphCtrl.subsetChanged();
+        serieColor.count(max);
+        graphCtrl.update();
     }
 
     onChangeSerieX = function(value) {

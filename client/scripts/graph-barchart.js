@@ -1,5 +1,4 @@
 
-const logDate = () => (new Date()).toISOString();
 
 const plotBarchart = function ( datatype, width, height, sortColumn, displayColumn, start, end ) {
 
@@ -25,7 +24,7 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
     const yAxis = d3.axisLeft(y);
 
     // Colors for series
-    const serieColor = d3.scaleOrdinal().range(d3.schemeSpectral[10])
+    const serieColor = colorScale();
 
     // The list of columns will not change
     let columns = [];

@@ -1,3 +1,6 @@
+import * as d3 from 'https://cdn.skypack.dev/d3@7';
+export { interactiveLegend };
+
 const joinBoxes = function ( boxes, margin=0 ) {
     const xmin = -margin+(boxes.length>0 ? Math.min(...boxes.map( b => b.x)) : 0);
     const ymin = -margin+(boxes.length>0 ? Math.min(...boxes.map( b => b.y)) : 0);

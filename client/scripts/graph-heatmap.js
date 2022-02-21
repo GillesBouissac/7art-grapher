@@ -1,4 +1,12 @@
 
+import * as d3 from 'https://cdn.skypack.dev/d3@7';
+import { colorScale, logDate } from './util.js';
+import { Tooltip } from './tooltip.js';
+import { TitleData, SerieElement } from './title.js';
+import { rangeSelectorXY } from './range-selector.js';
+
+export { plotHeatmap };
+
 /**
  * Constructs the heatmap data and graphics.
  * 
@@ -265,45 +273,45 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
         graphCtrl.updateMinimap();
     }
 
-    onChangeSortX = function(value, n) {
+    const onChangeSortX = function() {
         if (!sortCriteria.hasOwnProperty(serieNameX)) {
             sortCriteria[serieNameX] = [];
         }
-        const changed = sortCriteria[serieNameX][n] != value;
-        sortCriteria[serieNameX][n] = value;
+        const changed = sortCriteria[serieNameX][0] != this.value;
+        sortCriteria[serieNameX][0] = this.value;
         if (changed) graphCtrl.seriesChanged();
     }
 
-    onChangeSortY = function(value, n) {
+    const onChangeSortY = function() {
         if (!sortCriteria.hasOwnProperty(serieNameY)) {
             sortCriteria[serieNameY] = [];
         }
-        const changed = sortCriteria[serieNameY][n] != value;
-        sortCriteria[serieNameY][n] = value;
+        const changed = sortCriteria[serieNameY][0] != this.value;
+        sortCriteria[serieNameY][0] = this.value;
         if (changed) graphCtrl.seriesChanged();
     }
 
-    onChangeSerieX = function(value) {
-        const changed = value!=serieNameX;
-        serieNameX = value;
+    const onChangeSerieX = function() {
+        const changed = this.value!=serieNameX;
+        serieNameX = this.value;
         if (changed) graphCtrl.seriesChanged();
     }
 
-    onChangeSerieY = function(value) {
-        const changed = value!=serieNameY;
-        serieNameY = value;
+    const onChangeSerieY = function() {
+        const changed = this.value!=serieNameY;
+        serieNameY = this.value;
         if (changed) graphCtrl.seriesChanged();
     }
 
-    onChangeMaxAxisStopsX = function(value) {
-        const changed = value!=maxStopsX;
-        maxStopsX = value;
+    const onChangeMaxAxisStopsX = function() {
+        const changed = this.value!=maxStopsX;
+        maxStopsX = this.value;
         if (changed) graphCtrl.seriesChanged();
     }
 
-    onChangeMaxAxisStopsY = function(value) {
-        const changed = value!=maxStopsY;
-        maxStopsY = value;
+    const onChangeMaxAxisStopsY = function() {
+        const changed = this.value!=maxStopsY;
+        maxStopsY = this.value;
         if (changed) graphCtrl.seriesChanged();
     }
 
@@ -344,21 +352,17 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
                         .call(function(s) { if(sortCriteria[serieNameY] && sortCriteria[serieNameY].includes(c)) s.attr("selected","true") });
                 }
             });
-
-            d3.select("#sortX1")
-                .attr("onchange", "onChangeSortX(this.value,0);");
-            d3.select("#sortY1")
-                .attr("onchange", "onChangeSortY(this.value,0);");
-            d3.select("#selectorX")
-                .attr("onchange", "onChangeSerieX(this.value);");
-            d3.select("#selectorY")
-                .attr("onchange", "onChangeSerieY(this.value);");
             d3.select("#maxStopsX")
-                .property("value", maxStopsX)
-                .attr("onchange", "onChangeMaxAxisStopsX(this.value);");
+                .property("value", maxStopsX);
             d3.select("#maxStopsY")
-                .property("value", maxStopsY)
-                .attr("onchange", "onChangeMaxAxisStopsY(this.value);");
+                .property("value", maxStopsY);
+
+            d3.select("#sortX1").on("change", onChangeSortX);
+            d3.select("#sortY1").on("change", onChangeSortY);
+            d3.select("#selectorX").on("change", onChangeSerieX);
+            d3.select("#selectorY").on("change", onChangeSerieY);
+            d3.select("#maxStopsX").on("change", onChangeMaxAxisStopsX);
+            d3.select("#maxStopsY").on("change", onChangeMaxAxisStopsY);
 
             graphCtrl.seriesChanged();
         });

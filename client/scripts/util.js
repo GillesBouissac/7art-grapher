@@ -1,3 +1,7 @@
+import * as d3 from 'https://cdn.skypack.dev/d3@7';
+export { logDate };
+export { compareAlphanumeric };
+export { colorScale };
 
 
 const logDate = () => (new Date()).toISOString();

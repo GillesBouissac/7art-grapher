@@ -1,3 +1,7 @@
+import { compareAlphanumeric } from './util.js';
+
+export { TitleData, SerieElement };
+
 /**
  * File dedicated to title.json parsing and indexing
  */

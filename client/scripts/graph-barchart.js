@@ -1,6 +1,14 @@
+import * as d3 from 'https://cdn.skypack.dev/d3@7';
+import { colorScale, logDate } from './util.js';
+import { Tooltip } from './tooltip.js';
+import { interactiveLegend } from './legend.js';
+import { rangeSelectorX } from './range-selector.js';
 
+export { plotBarchart };
 
 const plotBarchart = function ( datatype, width, height, sortColumn, displayColumn, start, end ) {
+
+    console.log("hello");
 
     width = width==null ? window.innerWidth : width;
     height = height==null ? window.innerHeight : height;

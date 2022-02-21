@@ -1,3 +1,7 @@
+import * as d3 from 'https://cdn.skypack.dev/d3@7';
+export { rangeSelectorX };
+export { rangeSelectorXY };
+
 
 /**
  * Base class for brush helper

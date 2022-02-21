@@ -1,4 +1,4 @@
-import * as d3 from 'https://cdn.skypack.dev/d3@7';
+import * as d3 from "https://cdn.skypack.dev/d3@7";
 export { logDate };
 export { compareAlphanumeric };
 export { colorScale };
@@ -16,7 +16,7 @@ const logDate = () => (new Date()).toISOString();
  * @param {string} b 
  * @returns -1/0/+1
  */
-const compareAlphanumeric = (a,b) => (""+a).localeCompare((""+b),undefined,{numeric:true,sensitivity:'base'});
+const compareAlphanumeric = (a,b) => (""+a).localeCompare((""+b),undefined,{numeric:true,sensitivity:"base"});
 
 const colorScale = () => new ColorScale();
 class ColorScale extends Function {
@@ -28,7 +28,7 @@ class ColorScale extends Function {
         this.count(100);
         return new Proxy(this, {
             apply: (target, _, args) => target._call(...args)
-        })
+        });
     }
 
     domain(val) {
@@ -37,7 +37,7 @@ class ColorScale extends Function {
             this._count=this._domain.length;
             this.update();
             return this;
-        };
+        }
         return this._domain; 
     }
 
@@ -47,7 +47,7 @@ class ColorScale extends Function {
             this._domain = d3.range(this._count);
             this.update();
             return this;
-        };
+        }
         return this._count; 
     }
 
@@ -56,7 +56,7 @@ class ColorScale extends Function {
             this._interpolator=val;
             this.update();
             return this;
-        };
+        }
         return this._interpolator; 
     }
 
@@ -64,7 +64,7 @@ class ColorScale extends Function {
         if (this._domain && this._interpolator)
             this._scale
                 .range(d3.range(this._count).map((_,i) => this._interpolator(i/(this._count-1))))
-                .domain(this._domain)
+                .domain(this._domain);
     }
 
     _call(args) {

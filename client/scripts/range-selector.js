@@ -1,4 +1,4 @@
-import * as d3 from 'https://cdn.skypack.dev/d3@7';
+import * as d3 from "https://cdn.skypack.dev/d3@7";
 export { rangeSelectorX };
 export { rangeSelectorXY };
 
@@ -23,7 +23,7 @@ class RangeSelectorBase {
         this._brush = brush;
         this._selectorG
             .call(brush);
-    };
+    }
 
     // cb: callback called with the bbox
     onMoved(cb) {
@@ -34,7 +34,7 @@ class RangeSelectorBase {
     onWheel() {
         return function(e) {
             e.preventDefault();
-        }
+        };
     }
 
     raise() {
@@ -53,7 +53,7 @@ const invertScaleBand = function(r) {
     }
     const index = Math.round((r-range[1])/step);
     return this.domain()[this.domain().length-index];
-}
+};
 
 /**
  * Brush that only allow move on X
@@ -81,8 +81,8 @@ class RangeSelectorX extends RangeSelectorBase {
         const range = [ this._scale(d[0]), this._scale(d[1])+this._scale.bandwidth() ];
         range[1] = (range[0]+this._minWidth)>range[1] ? range[0]+this._minWidth : range[1];
         this._brush.move(this._selectorG, range );
-    };
-    scale() { return this._scale }
+    }
+    scale() { return this._scale; }
 }
 
 /**
@@ -118,16 +118,16 @@ class RangeSelectorX extends RangeSelectorBase {
         pt1 = [this._scaleX(pt1[0]),this._scaleY(pt1[1])];
         pt2 = [this._scaleX(pt2[0])+this._scaleX.bandwidth(),this._scaleY(pt2[1])+this._scaleY.bandwidth()];
         this._brush.move(this._selectorG, [pt1, pt2] );
-    };
+    }
 
-    scaleX() { return this._scaleX }
-    scaleY() { return this._scaleY }
+    scaleX() { return this._scaleX; }
+    scaleY() { return this._scaleY; }
 }
 
 const rangeSelectorX = function (svg, width, height) {
     return new RangeSelectorX(svg, width, height);
-}
+};
 
 const rangeSelectorXY = function (svg, width, height) {
     return new RangeSelectorXY(svg, width, height);
-}
+};

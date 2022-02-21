@@ -1,8 +1,8 @@
-import * as d3 from 'https://cdn.skypack.dev/d3@7';
-import { colorScale, logDate } from './util.js';
-import { Tooltip } from './tooltip.js';
-import { interactiveLegend } from './legend.js';
-import { rangeSelectorX } from './range-selector.js';
+import * as d3 from "https://cdn.skypack.dev/d3@7";
+import { colorScale, logDate } from "./util.js";
+import { Tooltip } from "./tooltip.js";
+import { interactiveLegend } from "./legend.js";
+import { rangeSelectorX } from "./range-selector.js";
 
 export { plotBarchart };
 
@@ -59,7 +59,7 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
         .attr("width", width)
         .attr("height", height)
         .style("fill", "currentColor")
-        .style("background-color", "#333")
+        .style("background-color", "#333");
 
     const graph = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -70,7 +70,7 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
     const embeddedlegend = legendparent.empty();
     const legendsvg = embeddedlegend ? svg : legendparent.append("svg")
         .style("fill", "currentColor")
-        .style("background-color", "#333")
+        .style("background-color", "#333");
 
     const legend = interactiveLegend(legendsvg,embeddedlegend?200:0,0)
         .onSelectionChanged( newSelection => {
@@ -80,7 +80,7 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
         .onEndRendering( bbox => {
             if(!embeddedlegend) { legendsvg
                 .attr("width", bbox.x+bbox.width)
-                .attr("height", bbox.y+bbox.height)
+                .attr("height", bbox.y+bbox.height);
             }
         });
 
@@ -89,13 +89,13 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
     const selectorsvg = selectorparent.append("svg")
         .attr("visible",embeddedselector)
         .style("fill", "currentColor")
-        .style("background-color", "#333")
+        .style("background-color", "#333");
 
     const rangeSel = rangeSelectorX (selectorsvg, selectorsvg.node() ? selectorsvg.node().parentNode.getClientRects()[0].width : 0, 40)
         .onMoved( d => {
             const start = dataSorted.findIndex(e => e[0]==d[0]);
             const end = dataSorted.findIndex(e => e[0]==d[1]);
-            subset = dataSorted.slice(start,end)
+            subset = dataSorted.slice(start,end);
             xkeys = subset.map(e => e[0]);
             graphCtrl.update(subset);
         });
@@ -143,7 +143,7 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
 
             gy.attr("transform", "translate(0,0)")
               .transition(transition)
-              .call(yAxis)
+              .call(yAxis);
 
         // Updates Series
         const gs = graph.selectAll(".series")
@@ -156,7 +156,7 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
             .data(s=>s[1], d=>d[0])
             .join(enter => enter.append("rect")
                 .attr("x", function (d) { return xscale(d[0])+xscale.bandwidth()*sx(d[2]); })
-                .attr("y", function (d) { return ploth; })
+                .attr("y", function () { return ploth; })
                 .attr("width", 0)
                 .attr("height", 0)
                 .on("mouseover", tooltip.show())
@@ -167,12 +167,12 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
             .attr("y", function (d) { return yscale(d[1]); })
             .attr("width", xscale.bandwidth()*1.8/columnsIndexes.length)
             .attr("height", function (d) { return ploth - yscale(d[1]); })
-            .attr("fill", function(d){return serieColor(d[2]) })
+            .attr("fill", function(d){return serieColor(d[2]); })
             .attr("fill-opacity", "100%");
 
         legend.update(visibleColumns, serieColor);
         console.log(`${logDate()} Updated`);
-    }
+    };
 
     // Graph initialisation from data
     const dataPath = `/stats/${datatype}.json`;
@@ -190,7 +190,7 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
             rangeSel.scale().domain(dataSorted.map(e => e[0]));
 
             // Rescaling IMDb ratings
-            const imdbpattern = "(Average|Minimum|Maximum).*IMDb.*rating"
+            const imdbpattern = "(Average|Minimum|Maximum).*IMDb.*rating";
             const imdbratingCols = columns.map((c,i) => [c,i]).filter(e => e[0].match(imdbpattern) );
             data.forEach( e => imdbratingCols.forEach(i => e[i[1]]*=10) );
 
@@ -198,11 +198,11 @@ const plotBarchart = function ( datatype, width, height, sortColumn, displayColu
             start = start==null ? 0 : parseInt(start,10);
             start = start<0 ? (data.length + start) : start;
 
-            subset = dataSorted.slice(start,end)
+            subset = dataSorted.slice(start,end);
             xkeys = subset.map(e => e[0]);
 
             rangeSel.move([ dataSorted[start][0], dataSorted[end-1][0] ]);
             graphCtrl.update(subset);
         });
 
-}
+};

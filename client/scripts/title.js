@@ -1,4 +1,4 @@
-import { compareAlphanumeric } from './util.js';
+import { compareAlphanumeric } from "./util.js";
 
 export { TitleData, SerieElement };
 
@@ -48,7 +48,7 @@ class SerieElement extends AutoMap {
     name() {return this._name; }
     /** Film serie average accessor. */
     average(serie) {
-        if (!this._averages.hasOwnProperty(serie)) {
+        if (!Object.prototype.hasOwnProperty.call(this._averages,serie)) {
             this._averages[serie] = 0;
             if (this.size>0) {
                 let sum=0;

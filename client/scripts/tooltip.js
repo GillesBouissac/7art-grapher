@@ -1,4 +1,4 @@
-import * as d3 from 'https://cdn.skypack.dev/d3@7';
+import * as d3 from "https://cdn.skypack.dev/d3@7";
 export { Tooltip };
 
 /**
@@ -43,7 +43,7 @@ class Tooltip {
             //(this._tipbody, ...Array.from(arguments).slice(1));
         }
         else {
-            this._bodyfn = function(d) { `<p>${b}</p>` };
+            this._bodyfn = function() { `<p>${b}</p>`; };
         }
         return this;
     }
@@ -68,14 +68,14 @@ class Tooltip {
                 .on("mousemove.tooltip", _this.onMouseMove())
                 .on("mouseout.tooltip", _this.onMouseLeave());
             return _this;
-        }
+        };
     }
 
     hide() {
         const _this = this;
         return function() {
             _this._hide();
-        }
+        };
     }
 
     /**
@@ -90,7 +90,7 @@ class Tooltip {
                 .on("mouseout.tooltip", null);
         }
         this._target = null;
-        this._tiptoast.style("display", "none")
+        this._tiptoast.style("display", "none");
         return this;
     }
 
@@ -109,7 +109,7 @@ class Tooltip {
                     .raise();
             }
             return _this;
-        }
+        };
     }
 
     /**

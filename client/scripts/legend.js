@@ -1,4 +1,4 @@
-import * as d3 from 'https://cdn.skypack.dev/d3@7';
+import * as d3 from "https://cdn.skypack.dev/d3@7";
 export { interactiveLegend };
 
 const joinBoxes = function ( boxes, margin=0 ) {
@@ -11,8 +11,8 @@ const joinBoxes = function ( boxes, margin=0 ) {
         y:ymin,
         width:xmax-xmin,
         height:ymax-ymin,
-    }
-}
+    };
+};
 
 const interactiveLegend = function ( svg, x, y ) {
     const legendSize = 20;
@@ -55,14 +55,14 @@ const interactiveLegend = function ( svg, x, y ) {
                 .duration(200)
                 .on( "end", function() {
                     const bboxes = [ legendPos ];
-                    legendG.selectAll(".legendDots").each(function() { bboxes.push(this.getBBox()) });
-                    legendG.selectAll(".legendLabels").each(function() { bboxes.push(this.getBBox()) });
+                    legendG.selectAll(".legendDots").each(function() { bboxes.push(this.getBBox()); });
+                    legendG.selectAll(".legendLabels").each(function() { bboxes.push(this.getBBox()); });
                     const bbox = joinBoxes(bboxes, legendMargin);
                     legendBbox
                         .attr("x", bbox.x)
                         .attr("y", bbox.y)
                         .attr("width", bbox.width)
-                        .attr("height", bbox.height)
+                        .attr("height", bbox.height);
                     if (onEndRenderingCb!=null) onEndRenderingCb(bbox);
                 });
 
@@ -79,10 +79,10 @@ const interactiveLegend = function ( svg, x, y ) {
                 })
                 .transition(transition)
                 .attr("x", legendPos.x)
-                .attr("y", function(_,i){ return legendPos.y + i*(legendSize+5)})
+                .attr("y", function(_,i){ return legendPos.y + i*(legendSize+5);})
                 .attr("width", legendSize)
                 .attr("height", legendSize)
-                .style("fill", function(d){ return activeSeries.includes(d) ? allcolors(d) : "lightgrey"});
+                .style("fill", function(d){ return activeSeries.includes(d) ? allcolors(d) : "lightgrey";});
 
             // Add serie name
             legendG.selectAll(".legendLabels")
@@ -97,9 +97,9 @@ const interactiveLegend = function ( svg, x, y ) {
                 })
                 .transition(transition)
                 .attr("x", legendPos.x + legendSize*1.2)
-                .attr("y", function(_,i){ return legendPos.y + i*(legendSize+5) + (legendSize/2)+5})
-                .style("fill", function(d){ return allcolors(d)})
-                .text(function(d){ return d})
+                .attr("y", function(_,i){ return legendPos.y + i*(legendSize+5) + (legendSize/2)+5;})
+                .style("fill", function(d){ return allcolors(d);})
+                .text(function(d){ return d;})
                 .attr("text-anchor", "left")
                 .style("alignment-baseline", "middle");
     
@@ -120,15 +120,15 @@ const interactiveLegend = function ( svg, x, y ) {
             return this;
         },
 
-        allseries: function (s) {if(s!=null) { allseries=s; return this}; return allseries; },
-        allcolors: function (c) {if(c!=null) { allcolors=c; return this}; return allcolors; },
+        allseries: function (s) {if(s!=null) { allseries=s; return this;} return allseries; },
+        allcolors: function (c) {if(c!=null) { allcolors=c; return this;} return allcolors; },
 
         // cb: callback called with the array of new selected series indexes (from allseries)
-        onSelectionChanged: function (cb) { onSelectionChangedCb = cb; return this },
+        onSelectionChanged: function (cb) { onSelectionChangedCb = cb; return this; },
         // cb: callback called with the legend controller and bbox
-        onEndRendering: function (cb) { onEndRenderingCb = cb; return this }
+        onEndRendering: function (cb) { onEndRenderingCb = cb; return this; }
 
-    }
+    };
     return legend;
-}
+};
 

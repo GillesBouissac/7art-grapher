@@ -1,6 +1,6 @@
-import { compareAlphanumeric } from "./util.js";
+import { compareAlphanumeric, logDate } from "./util.js";
 
-export { TitleData, SerieElement };
+export { TitleData, Serie };
 
 /**
  * File dedicated to title.json parsing and indexing
@@ -15,10 +15,10 @@ const TitleColName = "Title";
     /**
      * Returns the element at key event if absent before the call
      * 
-     * @See https://www.baeldung.com/java-map-computeifabsent.
-     * @param {*} key 
-     * @param {*} mappingFunction 
-     * @returns 
+     * @see {@link https://www.baeldung.com/java-map-computeifabsent.}
+     * @param {string} key The key element to get or create
+     * @param {Function} mappingFunction The function to call to create a missing object
+     * @returns {Map<any,any>} The element at "key"
      */
     computeIfAbsent(key, mappingFunction) {
         if ( !this.has(key) ) {
@@ -32,9 +32,6 @@ const TitleColName = "Title";
  * Map of data for one serie element.
  */
 class SerieElement extends AutoMap {
-    static SortCriteriaKey = "Etiquette";
-    static SortCriteriaCount = "Nombre de films";
-    static SortCriteriaNone = "---";
 
     constructor(name) {
         super();
@@ -44,42 +41,78 @@ class SerieElement extends AutoMap {
     getOrCreate(key) {
         return super.computeIfAbsent(key, () => new Film());
     }
-    /** Name accessor. */
+
+    /**
+     * Name accessor.
+     * 
+     * @returns {string} name of this element
+     */
     name() {return this._name; }
-    /** Film serie average accessor. */
+
+    /**
+     * Film serie average accessor
+     * 
+     * @param {string} serie Name of the serie
+     * @returns {number} The computed average
+     */
     average(serie) {
         if (!Object.prototype.hasOwnProperty.call(this._averages,serie)) {
             this._averages[serie] = 0;
             if (this.size>0) {
-                let sum=0;
+                const vals=[];
                 this.forEach(film => {
-                    const filmElems = Array.from(film.get(serie).keys());
-                    const vals = filmElems.map(e=>{
-                        const val = parseFloat(e);
-                        if (isNaN(val)) return 0;
-                        return val;
-                    });
-                    sum += vals.reduce((p,c)=>p+c,0);
+                    vals.push(...Array.from(film.get(serie).keys()));
                 });
-                this._averages[serie] = sum/this.size;
+                if ( vals.length==1 ) {
+                    // returns the value (could be a string, no average)
+                    let v = parseFloat(vals[0]);
+                    this._averages[serie] = isNaN(v) ? vals[0] : v;
+                }
+                else {
+                    const sum = vals.reduce(function (p,c){
+                        let v = parseFloat(c);
+                        v = isNaN(v) ? 0 : v;
+                        return p+v;
+                    },0);
+                    this._averages[serie] = (sum/vals.length).toFixed(3);
+                }
             }
         }
         return this._averages[serie];
     }
-    /** Compares 2 elements of by name. */
+
+    /**
+     * Compares 2 elements of by name.
+     * 
+     * @param {SerieElement} b The element to compare to this
+     * @returns {number} -1(a<b)/0(a==b)/+1(a>b)
+     */
     compareByName(b) {
         return compareAlphanumeric(this._name,b._name);
     }
-    /** Compares 2 elements of by film count. */
-    compareByCount(b) {
+
+    /**
+     * Compares 2 elements of by name.
+     * 
+     * @param {SerieElement} b The element to compare to this
+     * @returns {number} -1(a<b)/0(a==b)/+1(a>b)
+     */
+     compareByCount(b) {
         return this.size - b.size;
     }
-    /** Compares 2 elements of by film serie value. */
-    compareBySerie(serie,b) {
-        if ( serie==SerieElement.SortCriteriaNone ) return 0;
-        if ( serie==SerieElement.SortCriteriaKey ) return this.compareByName(b);
-        if ( serie==SerieElement.SortCriteriaCount ) return this.compareByCount(b);
-        return this.average(serie) - b.average(serie);
+
+    /**
+     * Compares 2 elements of by name.
+     * 
+     * @param {string} serie The serie to compare
+     * @param {SerieElement} b The element to compare to this
+     * @returns {number} -1(a<b)/0(a==b)/+1(a>b)
+     */
+     compareBySerie(serie,b) {
+        if ( serie==Serie.SortCriterionNone ) return 0;
+        if ( serie==Serie.SortCriterionKey ) return this.compareByName(b);
+        if ( serie==Serie.SortCriterionCount ) return this.compareByCount(b);
+        return compareAlphanumeric(this.average(serie),b.average(serie));
     }
 }
 
@@ -87,6 +120,38 @@ class SerieElement extends AutoMap {
  * Map of data for one serie.
  */
 class Serie extends AutoMap {
+    static SerieNull = "---";
+    static TypeNumber = "number";
+    static TypeString = "string";
+    static TypeNull = "null";
+    static SortCriterionKey = "Etiquette";
+    static SortCriterionCount = "Nombre de films";
+    static SortCriterionNone = Serie.SerieNull;
+
+    /**
+     * List of available sort criteria by serie
+     */
+    static SortCriteria = {
+        "Year": [Serie.SortCriterionKey],
+        "IMDb rating": [Serie.SortCriterionKey],
+        "Rotten Tomatoes rating": [Serie.SortCriterionKey],
+        "TMDB ID": [Serie.SortCriterionKey],
+        "Runtime": [Serie.SortCriterionKey]
+    };
+
+    static Types = {
+        "---": Serie.TypeNull,
+        "Year": Serie.TypeNumber,
+        "Runtime": Serie.TypeNumber,
+        "IMDb rating": Serie.TypeNumber,
+        "Rotten Tomatoes rating": Serie.TypeNumber,
+        "TMDB ID": Serie.TypeNumber,
+    };
+
+    static getType(serie) {
+        return Serie.Types[serie] ? Serie.Types[serie] : Serie.TypeString;
+    }
+
     getOrCreate(key) {
         return super.computeIfAbsent(key, () => new SerieElement(key));
     }
@@ -127,8 +192,12 @@ class Serie extends AutoMap {
  * Note that this._series.get("Title") gives direct access to films by title
  */
 class TitleData {
+    constructor() {
+        this._series = new AllSeries();
+        this._columns = [];
+    }
 
-    parse ( content ) {
+    parse (content) {
         this._columns = content.columns;
         // Index series to film
         this._series = new AllSeries();
@@ -154,6 +223,7 @@ class TitleData {
                 });
             });
         });
+        console.log(`${logDate()} Data parsed`);
     }
 
     columns() { return this._columns; }

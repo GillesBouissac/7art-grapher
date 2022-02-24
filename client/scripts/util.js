@@ -12,11 +12,13 @@ const logDate = () => (new Date()).toISOString();
  *     "2aaa3yy" < "2aaa30b"
  *     "2aaa3yy" < "2zzz3yy"
  * 
- * @param {string} a 
- * @param {string} b 
- * @returns -1/0/+1
+ * @param {string} a The first string to compare
+ * @param {string} b The second string to compare
+ * @returns {number} -1(a<b)/0(a==b)/+1(a>b)
  */
-const compareAlphanumeric = (a,b) => (""+a).localeCompare((""+b),undefined,{numeric:true,sensitivity:"base"});
+const compareAlphanumeric = function(a,b) {
+    return (""+a).localeCompare((""+b),undefined,{numeric:true,sensitivity:"base"})
+};
 
 const colorScale = () => new ColorScale();
 class ColorScale extends Function {

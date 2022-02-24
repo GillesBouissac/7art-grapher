@@ -3,6 +3,7 @@
     "axios": "^0.25.0"
   },
   "devDependencies": {
-    "eslint": "^8.9.0"
+    "eslint": "^8.9.0",
+    "eslint-plugin-jsdoc": "^37.9.4"
   }
 }

@@ -2,7 +2,7 @@
 import * as d3 from "https://cdn.skypack.dev/d3@7";
 import { colorScale, logDate } from "./util.js";
 import { Tooltip } from "./tooltip.js";
-import { TitleData, SerieElement } from "./title.js";
+import { TitleData, Serie } from "./title.js";
 import { rangeSelectorXY } from "./range-selector.js";
 
 export { plotHeatmap };
@@ -43,23 +43,7 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
     const serieColor = colorScale();
 
     // Initial sort criteria
-    const defaultSortCriteria = SerieElement.SortCriteriaCount;
-    let sortCriteria = {
-        "Year": [SerieElement.SortCriteriaKey],
-        "IMDb rating": [SerieElement.SortCriteriaKey],
-        "Rotten Tomatoes rating": [SerieElement.SortCriteriaKey],
-        "IMDb ID": [SerieElement.SortCriteriaKey],
-        "TMDB ID": [SerieElement.SortCriteriaKey],
-        "Runtime": [SerieElement.SortCriteriaKey]
-    };
-    let numericSeries = [
-        "Year",
-        "Runtime",
-        "IMDb rating",
-        "Rotten Tomatoes rating",
-        "IMDb ID",
-        "TMDB ID",
-    ];
+    const defaultSortCriteria = Serie.SortCriterionCount;
 
     // Received data
     let titles = new TitleData();
@@ -232,7 +216,7 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
     const sortedSerieElements = function(serieName) {
         const allValues = titles.series(serieName);
         const keyset = Array.from(allValues.keys());
-        const criteria = Object.prototype.hasOwnProperty.call(sortCriteria,serieName) ? sortCriteria[serieName] : [defaultSortCriteria];
+        const criteria = Object.prototype.hasOwnProperty.call(Serie.SortCriteria,serieName) ? Serie.SortCriteria[serieName] : [defaultSortCriteria];
 
         let result = 0;
         return keyset.sort(function(a,b){
@@ -273,20 +257,20 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
     };
 
     const onChangeSortX = function() {
-        if (!Object.prototype.hasOwnProperty.call(sortCriteria,serieNameX)) {
-            sortCriteria[serieNameX] = [];
+        if (!Object.prototype.hasOwnProperty.call(Serie.SortCriteria,serieNameX)) {
+            Serie.SortCriteria[serieNameX] = [];
         }
-        const changed = sortCriteria[serieNameX][0] != this.value;
-        sortCriteria[serieNameX][0] = this.value;
+        const changed = Serie.SortCriteria[serieNameX][0] != this.value;
+        Serie.SortCriteria[serieNameX][0] = this.value;
         if (changed) graphCtrl.seriesChanged();
     };
 
     const onChangeSortY = function() {
-        if (!Object.prototype.hasOwnProperty.call(sortCriteria,serieNameY)) {
-            sortCriteria[serieNameY] = [];
+        if (!Object.prototype.hasOwnProperty.call(Serie.SortCriteria,serieNameY)) {
+            Serie.SortCriteria[serieNameY] = [];
         }
-        const changed = sortCriteria[serieNameY][0] != this.value;
-        sortCriteria[serieNameY][0] = this.value;
+        const changed = Serie.SortCriteria[serieNameY][0] != this.value;
+        Serie.SortCriteria[serieNameY][0] = this.value;
         if (changed) graphCtrl.seriesChanged();
     };
 
@@ -325,30 +309,29 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
             serieNameY = defaultSerieY;
 
             titles.parse(content);
-            console.log(`${logDate()} Data parsed`);
 
-            d3.select("#sortX1").append("option").text(SerieElement.SortCriteriaNone)
-                .call(function(s) { if(sortCriteria[serieNameX] && sortCriteria[serieNameX].includes(SerieElement.SortCriteriaNone)) s.attr("selected","true"); });
-            d3.select("#sortX1").append("option").text(SerieElement.SortCriteriaKey)
-                .call(function(s) { if(sortCriteria[serieNameX] && sortCriteria[serieNameX].includes(SerieElement.SortCriteriaKey)) s.attr("selected","true"); });
-            d3.select("#sortX1").append("option").text(defaultSortCriteria)
-                .call(function(s) { if(!sortCriteria[serieNameX] || sortCriteria[serieNameX].includes(defaultSortCriteria)) s.attr("selected","true"); });
-            d3.select("#sortY1").append("option").text(SerieElement.SortCriteriaNone)
-                .call(function(s) { if(sortCriteria[serieNameY] && sortCriteria[serieNameY].includes(SerieElement.SortCriteriaNone)) s.attr("selected","true"); });
-            d3.select("#sortY1").append("option").text(SerieElement.SortCriteriaKey)
-                .call(function(s) { if(sortCriteria[serieNameY] && sortCriteria[serieNameY].includes(SerieElement.SortCriteriaKey)) s.attr("selected","true"); });
-            d3.select("#sortY1").append("option").text(defaultSortCriteria)
-                .call(function(s) { if(!sortCriteria[serieNameY] || sortCriteria[serieNameY].includes(defaultSortCriteria)) s.attr("selected","true"); });
+            d3.select("#sortX1").append("option").text(Serie.SortCriterionNone)
+                .call(function(s) { if(Serie.SortCriteria[serieNameX] && Serie.SortCriteria[serieNameX].includes(Serie.SortCriterionNone)) s.attr("selected","true"); });
+            d3.select("#sortX1").append("option").text(Serie.SortCriterionKey)
+                .call(function(s) { if(Serie.SortCriteria[serieNameX] && Serie.SortCriteria[serieNameX].includes(Serie.SortCriterionKey)) s.attr("selected","true"); });
+            d3.select("#sortX1").append("option").text(Serie.SortCriterionCount)
+                .call(function(s) { if(!Serie.SortCriteria[serieNameX] || Serie.SortCriteria[serieNameX].includes(Serie.SortCriterionCount)) s.attr("selected","true"); });
+            d3.select("#sortY1").append("option").text(Serie.SortCriterionNone)
+                .call(function(s) { if(Serie.SortCriteria[serieNameY] && Serie.SortCriteria[serieNameY].includes(Serie.SortCriterionNone)) s.attr("selected","true"); });
+            d3.select("#sortY1").append("option").text(Serie.SortCriterionKey)
+                .call(function(s) { if(Serie.SortCriteria[serieNameY] && Serie.SortCriteria[serieNameY].includes(Serie.SortCriterionKey)) s.attr("selected","true"); });
+            d3.select("#sortY1").append("option").text(Serie.SortCriterionCount)
+                .call(function(s) { if(!Serie.SortCriteria[serieNameY] || Serie.SortCriteria[serieNameY].includes(Serie.SortCriterionCount)) s.attr("selected","true"); });
             titles.columns().forEach( (c) => {
                 d3.select("#selectorX").append("option").text(c)
                     .call(function(s) { if(c==defaultSerieX) s.attr("selected","true"); });
                 d3.select("#selectorY").append("option").text(c)
                     .call(function(s) { if(c==defaultSerieY) s.attr("selected","true"); });
-                if (numericSeries.includes(c)) {
+                if (Serie.getType(c)!=Serie.TypeNull) {
                     d3.select("#sortX1").append("option").text(c)
-                        .call(function(s) { if(sortCriteria[serieNameX] && sortCriteria[serieNameX].includes(c)) s.attr("selected","true"); });
+                        .call(function(s) { if(Serie.SortCriteria[serieNameX] && Serie.SortCriteria[serieNameX].includes(c)) s.attr("selected","true"); });
                     d3.select("#sortY1").append("option").text(c)
-                        .call(function(s) { if(sortCriteria[serieNameY] && sortCriteria[serieNameY].includes(c)) s.attr("selected","true"); });
+                        .call(function(s) { if(Serie.SortCriteria[serieNameY] && Serie.SortCriteria[serieNameY].includes(c)) s.attr("selected","true"); });
                 }
             });
             d3.select("#maxStopsX")

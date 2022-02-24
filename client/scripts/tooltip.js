@@ -10,7 +10,7 @@ class Tooltip {
     /**
      * Tooltip constructor.
      * 
-     * @param {*} node 
+     * @param {Element} node the DOM node where this object will be attached
      */
     constructor( node ) {
         this._target = null;
@@ -34,7 +34,7 @@ class Tooltip {
      * @param {*} b Body content, this can be text of a callback.
      *              call back will be called with current datum
      *              and this is the tooltip dom Node
-     * @returns this
+     * @returns {Tooltip} this
      */
     body(b) {
         this._tipbody.selectChildren().remove();
@@ -52,8 +52,7 @@ class Tooltip {
      * Activate the tooltip to track the mouse over the given node,
      * Tooltip will be automatically removed when mouse leave the node.
      * 
-     * @param {*} node 
-     * @returns this
+     * @returns {Tooltip} this
      */
     show() {
         const _this = this;
@@ -81,7 +80,7 @@ class Tooltip {
     /**
      * Hides the tooltip.
      * 
-     * @returns this
+     * @returns {Tooltip} this
      */
     _hide() {
         if (this._target) {
@@ -97,7 +96,7 @@ class Tooltip {
     /**
      * Mouse move tracker builder.
      * 
-     * @returns The tracking function
+     * @returns {Function} The tracking function
      */
     onMouseMove() {
         const _this = this;
@@ -115,7 +114,7 @@ class Tooltip {
     /**
      * Mouse leave tracker builder.
      * 
-     * @returns The tracking function
+     * @returns {Tooltip} this
      */
      onMouseLeave() {
         return this.hide();

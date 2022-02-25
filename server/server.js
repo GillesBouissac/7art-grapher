@@ -34,6 +34,22 @@ const ifLogActive = function ( req, closure ) {
     }
 };
 
+const send404 = function (req, res) {
+    fs.promises
+    .readFile(`${clientDir}/404.html`)
+    .then (contents => {
+        res.setHeader("Content-Type", "text/html");
+        res.writeHead(404);
+        res.end(contents);
+        ifLogActive ( req, () => console.log(`${filePath}: ${Date.now()-start} ms`));
+    })
+    .catch(() => {
+        res.setHeader("Content-Type", "text/html");
+        res.writeHead(404);
+        res.end("404 Not Found\n");
+    });
+}
+
 const serveFile = function (filePath, req, res) {
     const ext = path.extname(filePath);
     let contentType = ext2mime[ext] ? ext2mime[ext] : "text/html";
@@ -48,8 +64,7 @@ const serveFile = function (filePath, req, res) {
         ifLogActive ( req, () => console.log(`${filePath}: ${Date.now()-start} ms`));
     })
     .catch(() => {
-        res.writeHead(302, {"Location": "/404.html"});
-        res.end();
+        send404(req, res);
     });
 };
 
@@ -68,8 +83,7 @@ const proxyData = function (filePath, req, res) {
         ifLogActive ( req, () => console.log(`${originUrl}: ${Date.now()-start} ms`));
     })
     .catch(() => {
-        res.writeHead(302, {"Location": "/404.html"});
-        res.end();
+        send404(req, res);
     });
 };
 
@@ -83,16 +97,10 @@ const requestListener = function (req, res) {
         serveFile(`${clientDir}${parsed.pathname}`, req, res);
     }
 };
-/*
-const options = {
-    key: fs.readFileSync('server/key.pem'),
-    cert: fs.readFileSync('server/cert.pem')
-};
-const server = https.createServer(options, requestListener);
-*/
 
 // redirect stdout / stderr to file
 const fsaccess = fs.createWriteStream("logs/access.log", { flags: "a" });
+// eslint-disable-next-line no-undef
 const logStdout = process.stdout;
 console.log = function () {
     const msg = `${(new Date).toLocaleString()} | ` + util.format.apply(null, arguments) + "\n";

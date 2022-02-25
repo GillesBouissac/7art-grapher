@@ -1,4 +1,10 @@
 {
+  "name": "film-grapher",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "server": "server/server.js"
+  },
   "dependencies": {
     "axios": "^0.25.0"
   },

@@ -1,11 +1,17 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path')
-const url = require('url');
-const axios = require('axios');
-const util = require('util');
+// const http = require('http');
+// const fs = require('fs');
+// const path = require('path')
+// const url = require('url');
+// const axios = require('axios');
+// const util = require('util');
+import * as http from "http";
+import * as fs from "fs";
+import * as path from "path";
+import * as url from "url";
+import * as util from "util";
+import axios from "axios";
 
-const host = '0.0.0.0';
+const host = "0.0.0.0";
 const port = 8000;
 // Ce serveur se comporte en proxy pour les data dans le but d'éviter les pbs CORS côté client
 const dataServer = "https://www.serveurperso.com";
@@ -26,7 +32,7 @@ const ifLogActive = function ( req, closure ) {
     if ( !onlyExternal || req.connection.remoteAddress!="127.0.0.1" ) {
         closure();
     }
-}
+};
 
 const serveFile = function (filePath, req, res) {
     const ext = path.extname(filePath);
@@ -41,11 +47,11 @@ const serveFile = function (filePath, req, res) {
         res.end(contents);
         ifLogActive ( req, () => console.log(`${filePath}: ${Date.now()-start} ms`));
     })
-    .catch(err => {
-        res.writeHead(302, {'Location': '/index.html'});
+    .catch(() => {
+        res.writeHead(302, {"Location": "/404.html"});
         res.end();
     });
-}
+};
 
 const proxyData = function (filePath, req, res) {
     const ext = path.extname(filePath);
@@ -61,11 +67,11 @@ const proxyData = function (filePath, req, res) {
         res.end(JSON.stringify(response.data));
         ifLogActive ( req, () => console.log(`${originUrl}: ${Date.now()-start} ms`));
     })
-    .catch(err => {
-        res.writeHead(302, {'Location': '/index.html'});
+    .catch(() => {
+        res.writeHead(302, {"Location": "/404.html"});
         res.end();
     });
-}
+};
 
 const requestListener = function (req, res) {
     ifLogActive ( req, () => console.log(`${req.connection.remoteAddress} - Request for ${req.url}`));
@@ -86,19 +92,19 @@ const server = https.createServer(options, requestListener);
 */
 
 // redirect stdout / stderr to file
-const fsaccess = fs.createWriteStream('logs/access.log', { flags: 'a' });
+const fsaccess = fs.createWriteStream("logs/access.log", { flags: "a" });
 const logStdout = process.stdout;
 console.log = function () {
-    const msg = `${(new Date).toLocaleString()} | ` + util.format.apply(null, arguments) + '\n';
+    const msg = `${(new Date).toLocaleString()} | ` + util.format.apply(null, arguments) + "\n";
     fsaccess.write(msg);
     logStdout.write(msg);
-}
-const fserror = fs.createWriteStream('logs/error.log', { flags: 'a' });
+};
+const fserror = fs.createWriteStream("logs/error.log", { flags: "a" });
 console.error = function () {
-    const msg = `${(new Date).toLocaleString()} | ` + util.format.apply(null, arguments) + '\n';
+    const msg = `${(new Date).toLocaleString()} | ` + util.format.apply(null, arguments) + "\n";
     fserror.write(msg);
     logStdout.write(msg);
-}
+};
 
 const server = http.createServer(requestListener);
 server.listen(port, host, () => {

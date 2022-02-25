@@ -129,12 +129,14 @@ class Serie extends AutoMap {
     static SortCriterionNone = Serie.SerieNull;
 
     /**
-     * List of available sort criteria by serie
+     * List of main sort criteria by serie
+     * Default to SortCriterionCount if not in this list
      */
     static SortCriteria = {
         "Year": [Serie.SortCriterionKey],
         "IMDb rating": [Serie.SortCriterionKey],
         "Rotten Tomatoes rating": [Serie.SortCriterionKey],
+        "IMDb ID": [Serie.SortCriterionKey],
         "TMDB ID": [Serie.SortCriterionKey],
         "Runtime": [Serie.SortCriterionKey]
     };
@@ -145,7 +147,6 @@ class Serie extends AutoMap {
         "Runtime": Serie.TypeNumber,
         "IMDb rating": Serie.TypeNumber,
         "Rotten Tomatoes rating": Serie.TypeNumber,
-        "TMDB ID": Serie.TypeNumber,
     };
 
     static getType(serie) {
@@ -198,8 +199,10 @@ class TitleData {
     }
 
     parse (content) {
+        /** @returns {string[]} Series names */
         this._columns = content.columns;
-        // Index series to film
+
+        /** @returns {AllSeries} Indexed series data */
         this._series = new AllSeries();
 
         const titleIdx = this._columns.findIndex(e => e==TitleColName);
@@ -226,8 +229,19 @@ class TitleData {
         console.log(`${logDate()} Data parsed`);
     }
 
+    /**
+     * Accessor to the Array of series names.
+     * 
+     * @returns {string[]} Series names
+     */
     columns() { return this._columns; }
-    films(name) { return name ? this._series.get(TitleColName).get(name) : this._series.get(TitleColName); }
-    series(name) { return name ? this._series.get(name) : this._series; }
+
+    /**
+     * Accessor to a specific serie.
+     * 
+     * @param {string} name Serie name
+     * @returns {Serie?} The required Serie or the whole Map if no name given or null if not found
+     */
+    series(name) { return name ? this._series.get(name) : null; }
 }
 

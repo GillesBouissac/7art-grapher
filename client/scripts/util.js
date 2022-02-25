@@ -17,7 +17,7 @@ const logDate = () => (new Date()).toISOString();
  * @returns {number} -1(a<b)/0(a==b)/+1(a>b)
  */
 const compareAlphanumeric = function(a,b) {
-    return (""+a).localeCompare((""+b),undefined,{numeric:true,sensitivity:"base"})
+    return (""+a).localeCompare((""+b),undefined,{numeric:true,sensitivity:"base"});
 };
 
 const colorScale = () => new ColorScale();

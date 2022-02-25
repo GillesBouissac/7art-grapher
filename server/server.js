@@ -1,20 +1,13 @@
-// const http = require('http');
-// const fs = require('fs');
-// const path = require('path')
-// const url = require('url');
-// const axios = require('axios');
-// const util = require('util');
 import * as http from "http";
 import * as fs from "fs";
 import * as path from "path";
 import * as url from "url";
 import * as util from "util";
+import * as params from "./parameters.js";
 import axios from "axios";
 
 const host = "0.0.0.0";
 const port = 8000;
-// Ce serveur se comporte en proxy pour les data dans le but d'éviter les pbs CORS côté client
-const dataServer = "https://www.serveurperso.com";
 const clientDir = "./client";
 
 const onlyExternal = true;
@@ -35,20 +28,26 @@ const ifLogActive = function ( req, closure ) {
 };
 
 const send404 = function (req, res) {
+    const filePath = `${clientDir}/404.html`;
+
+    const ext = path.extname(filePath);
+    let contentType = ext2mime[ext] ? ext2mime[ext] : "text/html";
+    const start = Date.now();
+
     fs.promises
-    .readFile(`${clientDir}/404.html`)
+    .readFile(filePath)
     .then (contents => {
-        res.setHeader("Content-Type", "text/html");
+        res.setHeader("Content-Type", contentType);
         res.writeHead(404);
         res.end(contents);
         ifLogActive ( req, () => console.log(`${filePath}: ${Date.now()-start} ms`));
     })
     .catch(() => {
-        res.setHeader("Content-Type", "text/html");
+        res.setHeader("Content-Type", contentType);
         res.writeHead(404);
         res.end("404 Not Found\n");
     });
-}
+};
 
 const serveFile = function (filePath, req, res) {
     const ext = path.extname(filePath);
@@ -64,6 +63,7 @@ const serveFile = function (filePath, req, res) {
         ifLogActive ( req, () => console.log(`${filePath}: ${Date.now()-start} ms`));
     })
     .catch(() => {
+        console.log(`${req.connection.remoteAddress} - Cannot serve ${req.url}`);
         send404(req, res);
     });
 };
@@ -72,7 +72,7 @@ const proxyData = function (filePath, req, res) {
     const ext = path.extname(filePath);
     let contentType = ext2mime[ext] ? ext2mime[ext] : "text/html";
 
-    const originUrl = `${dataServer}${filePath}`;
+    const originUrl = `${filePath}`;
     const start = Date.now();
 
     axios.get(originUrl)
@@ -83,6 +83,7 @@ const proxyData = function (filePath, req, res) {
         ifLogActive ( req, () => console.log(`${originUrl}: ${Date.now()-start} ms`));
     })
     .catch(() => {
+        console.log(`${req.connection.remoteAddress} - Cannot serve ${req.url}`);
         send404(req, res);
     });
 };
@@ -90,11 +91,22 @@ const proxyData = function (filePath, req, res) {
 const requestListener = function (req, res) {
     ifLogActive ( req, () => console.log(`${req.connection.remoteAddress} - Request for ${req.url}`));
     const parsed = url.parse(req.url, true);
-    if ( parsed.pathname.startsWith("/stats") ) {
-        proxyData(parsed.pathname, req, res);
+    const proxies = params.proxies
+        .filter(p => parsed.pathname.startsWith(p.prefix))
+        .map(p => p.target + parsed.pathname.substring(p.prefix.length));
+    if ( proxies.length ) {
+        proxyData(proxies[0], req, res);
     }
     else{
-        serveFile(`${clientDir}${parsed.pathname}`, req, res);
+        let filePath = "";
+        if (parsed.pathname=="/favicon.ico") {
+            filePath = "/favicon.ico";
+        }
+        else {
+            filePath = parsed.pathname.substring(params.rootPrefix.length);
+            if (filePath=="/") filePath = "/index.html";
+        }
+        serveFile(`${clientDir}${filePath}`, req, res);
     }
 };
 

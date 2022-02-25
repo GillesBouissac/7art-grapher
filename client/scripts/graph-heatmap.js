@@ -4,6 +4,7 @@ import { colorScale, logDate } from "./util.js";
 import { Tooltip } from "./tooltip.js";
 import { TitleData, Serie } from "./title.js";
 import { rangeSelectorXY } from "./range-selector.js";
+import * as params from "./parameters.js";
 
 export { plotHeatmap };
 
@@ -14,12 +15,14 @@ export { plotHeatmap };
  * @param {number} width 
  * @param {number} height 
  */
-const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
+const plotHeatmap = function ( width, height, maxStopsX, maxStopsY ) {
 
     width     = isNaN(parseInt(width,10)) ? window.innerWidth : parseInt(width,10);
     height    = isNaN(parseInt(height,10)) ? window.innerHeight : parseInt(height,10);
     maxStopsX = isNaN(parseInt(maxStopsX,10)) ? 500 : parseInt(maxStopsX,10);
     maxStopsY = isNaN(parseInt(maxStopsY,10)) ? 500 : parseInt(maxStopsY,10);
+
+    const datasetUrl = params.databaseLocation;
 
     // Default selected series
     const defaultSerieX = "Year";
@@ -179,8 +182,7 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
     /**
      * Update subset according to 2D selector.
      * 
-     * @param {*} xkeyset Values on X
-     * @param {*} ykeyset Values on Y
+     * @returns {number} Maximum cell value for this subset.
      */
     graphCtrl.subsetChanged = function() {
         xscale.domain(subsetX);
@@ -212,7 +214,12 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
         return max;
     };
 
-    /** Returns the list of serie elements sorted according to selected criteria */
+    /**
+     * Returns the list of serie elements sorted according to selected criteria
+     * 
+     * @param {string} serieName The serie to sort
+     * @returns {string[]} Sorted serie elements values list 
+     */
     const sortedSerieElements = function(serieName) {
         const allValues = titles.series(serieName);
         const keyset = Array.from(allValues.keys());
@@ -299,11 +306,10 @@ const plotHeatmap = function ( datatype, width, height, maxStopsX, maxStopsY ) {
     };
 
     // Graph initialisation from data
-    const dataPath = `/stats/${datatype}.json`;
-    console.log(`${logDate()} Request ${dataPath}`);
-    d3.json(dataPath)
+    console.log(`${logDate()} Request ${datasetUrl}`);
+    d3.json(datasetUrl)
         .then(function (content) {
-            console.log(`${logDate()} Received data set ${dataPath} with ${content.data.length} elements`);
+            console.log(`${logDate()} Received data set ${datasetUrl} with ${content.data.length} elements`);
 
             serieNameX = defaultSerieX;
             serieNameY = defaultSerieY;

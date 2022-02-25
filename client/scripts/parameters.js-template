@@ -1,0 +1,33 @@
+export { databaseLocation };
+export { personImageLocation };
+export { filmImageLocation };
+export { filmInfoLocation };
+
+//
+// TODO: Rename this file parameters.js and customize it before releasing the GUI
+//
+
+const databaseLocation = "<my-url>";
+
+// The following URLs can use object parameters available from databaseLocation:
+// - ${name}: object name
+//
+// examples:
+//     personImageLocation = "http://myserver.com/persons?name=${name}"
+//     personImageLocation = "./persons?name=${name}"
+//
+const personImageLocation = "<my-url>";
+
+// The following URLs can use object parameters available from databaseLocation:
+// - ${name}: film name
+// - ${imdb}: IMDb ID
+// - ${tmdb}: TMDb ID
+// - ${year}: film year of release
+//
+// examples:
+//     filmImageLocation = "http://myserver.com/films?name=${name}&year=${year}"
+//     filmInfoLocation = "./films?imdb=${imdb}"
+//
+const filmImageLocation = "<my-url>";
+const filmInfoLocation = "<my-url>";
+

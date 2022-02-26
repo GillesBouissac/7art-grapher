@@ -1,6 +1,7 @@
 import { compareAlphanumeric, logDate } from "./util.js";
+import params from "./parameters.js";
 
-export { TitleData, Serie };
+export { TitleData, Serie, SerieElement };
 
 /**
  * File dedicated to title.json parsing and indexing
@@ -128,6 +129,15 @@ class Serie extends AutoMap {
     static SortCriterionCount = "Nombre de films";
     static SortCriterionNone = Serie.SerieNull;
 
+    static Names = {
+        imdbId: "IMDb ID",
+        tmdbId: "TMDB ID",
+        imdbRating: "IMDb rating",
+        tmdbRating: "Rotten Tomatoes rating",
+        year: "Year",
+        runtime: "Runtime",
+    };
+
     /**
      * List of main sort criteria by serie
      * Default to SortCriterionCount if not in this list
@@ -147,6 +157,24 @@ class Serie extends AutoMap {
         "Runtime": Serie.TypeNumber,
         "IMDb rating": Serie.TypeNumber,
         "Rotten Tomatoes rating": Serie.TypeNumber,
+    };
+
+    static PictureUrls = {
+        "Title": params.filmImageLocation,
+        "Original title": params.filmImageLocation,
+        "Directors": params.directorsImageLocation,
+        "Writers": params.writersImageLocation,
+        "Actors": params.actorsImageLocation,
+        "Producers": params.producersImageLocation
+    };
+
+    static DetailInformationUrls = {
+        "Title": params.filmDetailLocation,
+        "Original title": params.filmDetailLocation,
+        "Directors": params.directorsDetailLocation,
+        "Writers": params.writersDetailLocation,
+        "Actors": params.actorsDetailLocation,
+        "Producers": params.producersDetailLocation
     };
 
     static getType(serie) {
@@ -190,11 +218,11 @@ class Serie extends AutoMap {
  *         - key: serie/column name (ex: "Countries")
  *         - value: **Serie** ... *This is where infinite loop starts*
  * 
- * Note that this._series.get("Title") gives direct access to films by title
  */
 class TitleData {
     constructor() {
         this._series = new AllSeries();
+        this._films = new SerieElement();
         this._columns = [];
     }
 
@@ -210,6 +238,7 @@ class TitleData {
 
             // Register the film
             const film = new Film();
+            this._films.set(row[titleIdx], film);
 
             // Index columns
             this._columns.forEach( (c,i) => {
@@ -237,11 +266,18 @@ class TitleData {
     columns() { return this._columns; }
 
     /**
+     * Accessor to the whole films list
+     * 
+     * @returns {SerieElement} The whole films list
+     */
+    films() { return this._films; }
+
+    /**
      * Accessor to a specific serie.
      * 
      * @param {string} name Serie name
      * @returns {Serie?} The required Serie or the whole Map if no name given or null if not found
      */
-    series(name) { return name ? this._series.get(name) : null; }
+     series(name) { return name ? this._series.get(name) : null; }
 }
 

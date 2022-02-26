@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as url from "url";
 import * as util from "util";
-import * as params from "./parameters.js";
+import params from "./parameters.js";
 import axios from "axios";
 
 const host = "0.0.0.0";

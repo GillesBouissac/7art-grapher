@@ -2,3 +2,7 @@ node_modules/
 logs/*.log
 client/libs/
 **/parameters.js
+**/*.jpeg
+**/*.jpg
+**/*.png
+

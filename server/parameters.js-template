@@ -1,33 +1,35 @@
-export { rootPrefix };
-export { proxies };
-
 //
 // TODO: Rename this file parameters.js and customize it before starting the server
 //
 
-/** @type {string} This server root prefix */
-const rootPrefix = "<my-prefix>";
+const parameters = {
 
-/**
- * Allow to proxify URLs starting by prefix to target URL
- * 
- * exemple:
- *   - configuration:
- *         proxies= [{
- *            prefix: "/data/",
- *            target: "http://another-server/",
- *         }]
- *
- *   - request:
- *         request: "http://this-server/data/thedata.json"
- *         => "http://another-server/thedata.json"
- * 
- */
-const proxies = [
-    {
-        /** @type {string} Exposed prefix */
-        prefix: "<exposed-prefix>",
-        /** @type {string} Target server prefix */
-        target: "<target-server-prefix>"
-    }
-];
+    /** @type {string} This server root prefix */
+    rootPrefix: "<my-prefix>",
+
+    /**
+    * Allow to proxify URLs starting by prefix to target URL
+    * 
+    * exemple:
+    *   - configuration:
+    *         proxies= [{
+    *            prefix: "/data/",
+    *            target: "http://another-server/",
+    *         }]
+    *
+    *   - request:
+    *         request: "http://this-server/data/thedata.json"
+    *         => "http://another-server/thedata.json"
+    * 
+    */
+    proxies: [
+        {
+            /** @type {string} Exposed prefix */
+            prefix: "<exposed-prefix>",
+            /** @type {string} Target server prefix */
+            target: "<target-server-prefix>"
+        }
+    ],
+};
+
+export default parameters;

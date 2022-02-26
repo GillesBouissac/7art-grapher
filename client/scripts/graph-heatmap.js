@@ -4,7 +4,7 @@ import { colorScale, logDate } from "./util.js";
 import { Tooltip } from "./tooltip.js";
 import { TitleData, Serie } from "./title.js";
 import { rangeSelectorXY } from "./range-selector.js";
-import * as params from "./parameters.js";
+import params from "./parameters.js";
 
 export { plotHeatmap };
 

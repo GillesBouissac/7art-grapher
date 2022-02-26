@@ -1,5 +1,5 @@
 import * as d3 from "https://cdn.skypack.dev/d3@7";
-import { logDate } from "./util.js";
+import { logDate, absoluteUrl } from "./util.js";
 import { TitleData, Serie, SerieElement } from "./title.js";
 import params from "./parameters.js";
 
@@ -346,7 +346,7 @@ class SearchManager {
         const imgUrlPattern = Serie.PictureUrls[serieName];
         if (imgUrlPattern) {
             const resolver = new Function("return `"+imgUrlPattern.replaceAll("${","${this.") +"`;");
-            return resolver.call(variables);
+            return absoluteUrl(resolver.call(variables));
         }
         return null;
     }
@@ -362,7 +362,7 @@ class SearchManager {
         const detailUrlPattern = Serie.DetailInformationUrls[serieName];
         if (detailUrlPattern) {
             const resolver = new Function("return `"+detailUrlPattern.replaceAll("${","${this.") +"`;");
-            return resolver.call(variables);
+            return absoluteUrl(resolver.call(variables));
         }
         return null;
     }

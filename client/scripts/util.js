@@ -2,9 +2,33 @@ import * as d3 from "https://cdn.skypack.dev/d3@7";
 export { logDate };
 export { compareAlphanumeric };
 export { colorScale };
+export { absoluteUrl };
 
 
 const logDate = () => (new Date()).toISOString();
+
+/**
+ * Converts a relative path to an absolute URL, don't change absolute URLs
+ * 
+ * @param {string} inputPath Any path (relative or absolute)
+ * @returns {string} An absolute path
+ */
+function absoluteUrl (inputPath) {
+    if ( /^([^/:]*:\/\/)/.test(inputPath) ) {
+        return inputPath; // absolute URL
+    }
+    else if ( /^\//.test(inputPath) ) {
+        return location.origin + inputPath; // absolute path on this server
+    }
+    let nUpLn = 0;
+    let sDir = "";
+    const sPath = location.pathname.replace(/[^/]*$/, inputPath.replace(/(\/|^)(?:\.?\/+)+/g, "$1"));
+    for (var nEnd, nStart = 0; nEnd = sPath.indexOf("/../", nStart), nEnd>-1; nStart = nEnd + nUpLn) {
+        nUpLn = /^\/(?:\.\.\/)*/.exec(sPath.slice(nEnd))[0].length;
+        sDir = (sDir + sPath.substring(nStart, nEnd)).replace(new RegExp("(?:\\/+[^\\/]*){0," + ((nUpLn - 1) / 3) + "}$"), "/");
+    }
+    return location.origin + sDir + sPath.substring(nStart);
+}
 
 /**
  * Compares 2 strings using alphanumeric algorithm (debian version comparator).

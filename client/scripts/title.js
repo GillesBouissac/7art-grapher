@@ -1,7 +1,7 @@
 import { compareAlphanumeric, logDate } from "./util.js";
 import params from "./parameters.js";
 
-export { TitleData, Serie, SerieElement };
+export { TitleData, Serie, SerieElement, Film };
 
 /**
  * File dedicated to title.json parsing and indexing

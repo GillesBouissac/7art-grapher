@@ -1,6 +1,6 @@
 import * as d3 from "https://cdn.skypack.dev/d3@7";
 import { logDate, absoluteUrl } from "./util.js";
-import { TitleData, Serie, SerieElement } from "./title.js";
+import { TitleData, Serie, SerieElement, Film } from "./title.js";
 import params from "./parameters.js";
 
 export { localSearch };
@@ -132,8 +132,13 @@ class SearchManager {
      */
     onCopyLinks() {
         const _this = this;
-        /** The menu-item-copy button handler */
-        return function() {
+        /**
+         * The menu-item-copy button handler
+         * 
+         * @param {Event} e DOM event
+         */
+        return function(e) {
+            d3.select("#toast-end-copy-position").style("top", `${e.clientY}px`).style("left", `${e.clientX}px`);
             if (_this.resultCache) {
                 const urls = [];
                 _this.resultCache.forEach(se => {
@@ -141,16 +146,25 @@ class SearchManager {
                     const imgUrl = _this.buildDetailUrl(_this.dataType, vars);
                     if (imgUrl) urls.push(imgUrl);
                 });
-                navigator.clipboard
+                try {
+                    navigator.clipboard
                     .writeText(urls.join("\n"))
                     .then(function() {
-                        console.log("Links copied to clipboad");
-                    }, function() {
-                        console.log("Error copying links");
+                        d3.select("#toast-end-copy").classed("show", true).classed("bg-primary", true)
+                            .select(".toast-body").text(`${urls.length} links have been copyied in the clipboard`);
+                    }, function(err) {
+                        d3.select("#toast-end-copy").classed("show", true).classed("bg-danger", true)
+                            .select(".toast-body").text(`Error copying ${urls.length} links to the clipboard: ${err}`);
                     });
+                }
+                catch(err) {
+                    d3.select("#toast-end-copy").classed("show", true).classed("bg-danger", true)
+                        .select(".toast-body").text(`Error while accessing to the clipboard: ${err}`);
+                }
             }
             else {
-                console.log("No result to copy to clipboard");
+                d3.select("#toast-end-copy").classed("show", true).classed("bg-danger", true)
+                    .select(".toast-body").text("No result to copy to clipboard");
             }
         };
     }
@@ -394,12 +408,24 @@ class SearchManager {
         const vars = this.buildPatternVariables(se);
         const imgUrl = this.buildImageUrl(this.dataType, vars);
         const detailUrl = this.buildDetailUrl(this.dataType, vars);
-        newCard.selectAll(".cardTemplateTitle").text(se.name());
         if (imgUrl) {
             newCard.selectAll(".cardTemplateImage").attr("src", imgUrl);
         }
         if (detailUrl) {
             newCard.selectAll(".cardTemplateUrl").attr("href", detailUrl);
+        }
+        newCard.selectAll(".card-template-title").text(se.name());
+        const films = [...se.values()];
+        if (films.length==1 && (films[0] instanceof Film)) {
+            const imdbr = films[0].get(Serie.Names.imdbRating)?.values().next().value?.name();
+            const tmdbr = films[0].get(Serie.Names.tmdbRating)?.values().next().value?.name();
+            const year = films[0].get(Serie.Names.year)?.values().next().value?.name();
+            newCard.selectAll(".card-template-title2")
+                .text(`${year} - ${imdbr} - ${tmdbr}`);
+        }
+        else {
+            newCard.selectAll(".card-template-title2")
+                .text(`${films.length} Movies`);
         }
         return newCard;
     }

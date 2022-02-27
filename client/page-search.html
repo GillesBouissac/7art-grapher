@@ -20,15 +20,15 @@
             width:33.33%
         }
         html {
-            font-size: 3.5vw;
+            font-size: 93%;
+        }
+        .card-template-title2 {
+            font-size: 88%;
         }
         @media (min-width: 576px) {
             .row-cols-auto > * {
                 flex:0 0 auto;
                 width:20.00%
-            }
-            html {
-                font-size: 3.0vw;
             }
         }
         @media (min-width: 768px) {
@@ -36,17 +36,11 @@
                 flex:0 0 auto;
                 width:16.66%
             }
-            html {
-                font-size: 2.5vw;
-            }
         }
         @media (min-width: 992px) {
             .row-cols-auto > * {
                 flex:0 0 auto;
                 width:12.5%
-            }
-            html {
-                font-size: 2.0vw;
             }
         }
         @media (min-width: 1200px) {
@@ -54,26 +48,17 @@
                 flex:0 0 auto;
                 width:10.00%
             }
-            html {
-                font-size: 1.5vw;
-            }
         }
         @media (min-width: 1500px) {
             .row-cols-auto > * {
                 flex:0 0 auto;
                 width:8.33%
             }
-            html {
-                font-size: 1.1vw;
-            }
         }
         @media (min-width: 1800px) {
             .row-cols-auto > * {
                 flex:0 0 auto;
                 width:6.66%
-            }
-            html {
-                font-size: 0.8vw;
             }
         }
         #left-menu {
@@ -229,6 +214,20 @@
             </div>
         </div>
     </main>
+    <div id="Toasts">
+        <div id="toast-end-copy-position" class="position-fixed b-auto p-3" style="z-index: 2000;">
+            <div id="toast-end-copy" class="toast text-dark" role="alert" aria-live="End of copy to clipboard" aria-atomic="true">
+                <div class="toast-header">
+                    <img src="artifacts/logo.svg" class="mb-1 me-2" style="height: 1.15em">
+                    <strong class="me-auto">Copy to clipbard</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                Hello, world! This is a toast message.
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="Templates" style="display:none">
         <!--
             Template for active filters in #activeFilterContainer
@@ -253,14 +252,15 @@
                 <img class="cardTemplateImage shaper-slave-image"></img>
                 <a href="#" class="cardTemplateUrl shaper-slave-overlay text-dark my-mb-auto px-mb-4" target="_blank">
                     <div class="shaper-slave bg-secondary bg-gradient d-grid">
-                        <p class="text-truncate cardTemplateTitle">Title</p>
+                        <p class="text-truncate card-template-title">Title</p>
                         <div class="row mx-mb-auto">
                             <table class="cardTemplateProperties col table-primary"></table>
                         </div>
                     </div>
                 </a>
             </div>
-            <div><p class="text-center text-truncate cardTemplateTitle">Title</p></div>
+            <div><p class="text-center text-truncate card-template-title mb-0">Title</p></div>
+            <div><p class="text-center text-truncate card-template-title2 text-secondary">Title</p></div>
         </div>
     </div>
 </body>

@@ -36,7 +36,7 @@ const localSearch = function() {
 class SearchManager {
     static DATA_DEFAULT = "Film";
     static MAX_SEARCH_RESULT = 100;
-    static CARDS_PER_PAGE = 50;
+    static CARDS_PER_PAGE = 170;
 
     constructor() {
         /** @type {TitleData} */
@@ -126,13 +126,13 @@ class SearchManager {
     }
 
     /**
-     * Build a copyLink button handler bound to this object
+     * Build a menu-item-copy handler bound to this object
      * 
-     * @returns {Function} Callback for "click" event
+     * @returns {Function} Callback for event
      */
     onCopyLinks() {
         const _this = this;
-        /** The copyLink button handler */
+        /** The menu-item-copy button handler */
         return function() {
             if (_this.resultCache) {
                 const urls = [];
@@ -152,6 +152,22 @@ class SearchManager {
             else {
                 console.log("No result to copy to clipboard");
             }
+        };
+    }
+
+    /**
+     * Build a menu-item-open-left handler bound to this object
+     * 
+     * @returns {Function} Callback for event
+     */
+    onOpenLeftMenu() {
+        /** The menu-item-open-left button handler */
+        return function() {
+            const menu = d3.select("#left-menu");
+            if (menu.style("transform") == "none")
+                menu.style("transform", "translateX(100%)");
+            else
+                menu.style("transform", "none");
         };
     }
 
@@ -591,8 +607,10 @@ class SearchManager {
             .append("option").text(Serie.SerieNull).attr("selected","true");
         d3.select("#newFilterAddContainer")
             .on("click", this.onFilterAdd());
-        d3.select("#copyLinks")
+        d3.select("#menu-item-copy")
             .on("click", this.onCopyLinks());
+        d3.select("#menu-item-open-left")
+            .on("click", this.onOpenLeftMenu());
         this.data.columns()
             .forEach(c => {
                 d3.select("#newFilterTypeSelector")

@@ -7,12 +7,21 @@ export { TitleData, Serie, SerieElement, Film };
  * File dedicated to title.json parsing and indexing
  */
 
-const TitleColName = "Title";
-
 /**
  * Map that allow entries creation and get in one call.
  */
  class AutoMap extends Map {
+
+    /**
+     * Each list of object must have a name
+     * 
+     * @param {string} name The map name
+     */
+    constructor(name) {
+        super();
+        this._name = name;
+    }
+
     /**
      * Returns the element at key event if absent before the call
      * 
@@ -35,12 +44,11 @@ const TitleColName = "Title";
 class SerieElement extends AutoMap {
 
     constructor(name) {
-        super();
-        this._name = name;
+        super(name);
         this._averages = {};
     }
-    getOrCreate(key) {
-        return super.computeIfAbsent(key, () => new Film());
+    getOrCreate(key, name) {
+        return super.computeIfAbsent(key, () => new Film(name));
     }
 
     /**
@@ -130,6 +138,7 @@ class Serie extends AutoMap {
     static SortCriterionNone = Serie.SerieNull;
 
     static Names = {
+        title: "Title",
         imdbId: "IMDb ID",
         tmdbId: "TMDB ID",
         imdbRating: "IMDb rating",
@@ -181,8 +190,12 @@ class Serie extends AutoMap {
         return Serie.Types[serie] ? Serie.Types[serie] : Serie.TypeString;
     }
 
-    getOrCreate(key) {
-        return super.computeIfAbsent(key, () => new SerieElement(key));
+    constructor(name) {
+        super(name);
+    }
+
+    getOrCreate(key, name) {
+        return super.computeIfAbsent(key, () => new SerieElement(name));
     }
 }
 
@@ -190,8 +203,13 @@ class Serie extends AutoMap {
  * Map of data for all series.
  */
  class AllSeries extends AutoMap {
-    getOrCreate(key) {
-        return super.computeIfAbsent(key, () => new Serie());
+
+    constructor(name) {
+        super(name);
+    }
+
+    getOrCreate(key, name) {
+        return super.computeIfAbsent(key, () => new Serie(name));
     }
 }
 
@@ -199,8 +217,13 @@ class Serie extends AutoMap {
  * Map of data for one film.
  */
  class Film extends AutoMap {
-    getOrCreate(key) {
-        return super.computeIfAbsent(key, () => new Serie());
+
+    constructor(name) {
+        super(name);
+    }
+
+    getOrCreate(key, name) {
+        return super.computeIfAbsent(key, () => new Serie(name));
     }
 }
 
@@ -220,6 +243,15 @@ class Serie extends AutoMap {
  * 
  */
 class TitleData {
+
+    /**
+     * List of serie for which the elements are indexed with film key
+     * They are unique by film and year, never merged between films
+     */
+    static IndexedByFilm = [
+        "Title", "Original title", "Outline", "Plot",
+    ];
+
     constructor() {
         this._series = new AllSeries();
         this._films = new SerieElement();
@@ -231,26 +263,29 @@ class TitleData {
         this._columns = content.columns;
 
         /** @returns {AllSeries} Indexed series data */
-        this._series = new AllSeries();
+        this._series = new AllSeries("Root");
 
-        const titleIdx = this._columns.findIndex(e => e==TitleColName);
+        const titleIdx = this._columns.findIndex(e => e==Serie.Names.title);
+        const yearIdx = this._columns.findIndex(e => e==Serie.Names.year);
         content.data.forEach( row => {
 
             // Register the film
-            const film = new Film();
-            this._films.set(row[titleIdx], film);
+            const film = new Film(row[titleIdx]);
+            const filmKey = `${row[titleIdx]}/${row[yearIdx]}`;
+            this._films.set(filmKey, film);
 
             // Index columns
             this._columns.forEach( (c,i) => {
-                film.getOrCreate(c);
-                const serie = this._series.getOrCreate(c);
+                film.getOrCreate(c, c);
+                const serie = this._series.getOrCreate(c, c);
                 let vals = Array.isArray(row[i]) ? row[i] : [ row[i] ];
                 vals.forEach(e => {
                     const se = ""+e;
                     const te = parseInt(se, 10);
                     if (isNaN(te) || te>=0) {
-                        serie.getOrCreate(se).set(row[titleIdx], film);
-                        film.getOrCreate(c).set(se, serie.get(se));
+                        const seKey = TitleData.IndexedByFilm.includes(c) ? filmKey : se;
+                        serie.getOrCreate(seKey, se).set(filmKey, film);
+                        film.getOrCreate(c, c).set(seKey, serie.get(se));
                     }
                 });
             });

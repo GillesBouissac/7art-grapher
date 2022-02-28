@@ -1,6 +1,7 @@
 import * as d3 from "https://cdn.skypack.dev/d3@7";
 import { logDate, absoluteUrl, withoutDiacritics } from "./util.js";
 import { TitleData, Serie, SerieElement, Film } from "./title.js";
+import { UiLeftTray } from "./ui-left-tray.js";
 import params from "./parameters.js";
 
 export { localSearch };
@@ -51,6 +52,7 @@ class SearchManager {
         this.cardContainer = d3.select("#cardContainer");
         this.cardTemplate = d3.select("#Templates").select(".cardTemplate");
         this.resultCache = null;
+        this.leftTray = new UiLeftTray();
         this.restore();
     }
 
@@ -178,22 +180,6 @@ class SearchManager {
     }
 
     /**
-     * Build a menu-item-open-left handler bound to this object
-     * 
-     * @returns {Function} Callback for event
-     */
-    onOpenLeftMenu() {
-        /** The menu-item-open-left button handler */
-        return function() {
-            const menu = d3.select("#left-menu");
-            if (menu.style("transform") == "none")
-                menu.style("transform", "translateX(100%)");
-            else
-                menu.style("transform", "none");
-        };
-    }
-
-    /**
      * Build a data selection change handler bound to this object
      * 
      * @returns {Function} Callback for "click" event on DOM Element
@@ -226,7 +212,7 @@ class SearchManager {
      * 
      * @returns {Function} Callback for "click" event on DOM Element
      */
-     onFilterAdd() {
+    onFilterAdd() {
         const _this = this;
         /** The filter add button handler */
         return function() {
@@ -313,7 +299,7 @@ class SearchManager {
      * 
      * @returns {Function} Callback for "click" event on DOM Element
      */
-     onSearchListElementChoosen() {
+    onSearchListElementChoosen() {
         /**
          * Copy the choosen element to the main text field.
          * 
@@ -380,7 +366,7 @@ class SearchManager {
      * @param {object} variables List of variables
      * @returns {string} The URL
      */
-     buildImageUrl(serieName, variables) {
+    buildImageUrl(serieName, variables) {
         const imgUrlPattern = Serie.PictureUrls[serieName];
         if (imgUrlPattern) {
             const resolver = new Function("return `"+imgUrlPattern.replaceAll("${","${this.") +"`;");
@@ -559,7 +545,7 @@ class SearchManager {
      * @param {string} max The user max value
      * @returns {FilterParameters} The new filter
      */
-     createIntRangeFilter(criterion, min, max) {
+    createIntRangeFilter(criterion, min, max) {
         const minv = parseFloat(min);
         const maxv = parseFloat(max);
         if ( isNaN(minv) || isNaN(maxv) || maxv<minv) {
@@ -648,8 +634,6 @@ class SearchManager {
             .on("click", this.onFilterAdd());
         d3.select("#menu-item-copy")
             .on("click", this.onCopyLinks());
-        d3.select("#menu-item-open-left")
-            .on("click", this.onOpenLeftMenu());
         this.data.columns()
             .forEach(c => {
                 d3.select("#newFilterTypeSelector")

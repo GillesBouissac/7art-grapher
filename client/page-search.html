@@ -64,12 +64,23 @@
                 width:6.66%
             }
         }
-        #left-menu {
+        #left-tray-handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            width: 1.5em;
+        }
+        #left-tray {
             z-index: 1100;
-            --left-menu-width: min(100%, 30rem);
+            --left-tray-width: min(100%, 30rem);
         }
         #top-menu {
             z-index: 1200;
+        }
+        #left-tray-handle {
+            z-index: 1300;
         }
         .shaper-parent {
             contain: layout;
@@ -126,9 +137,9 @@
     </script>
 </head>
 
-<body class="bg-dark text-white">
+<body class="bg-dark text-white position-fixed start-0 end-0 top-0 bottom-0">
     <main>
-        <nav id="top-menu" class="navbar navbar-expand bg-secondary p-0 start-0 end-0 position-fixed" style="--bs-bg-opacity:0.8;" ria-label="Navigation bar">
+        <nav id="top-menu" class="navbar navbar-expand bg-secondary p-0 position-fixed start-0 end-0" style="--bs-bg-opacity:0.8;" ria-label="Navigation bar">
             <div class="container-fluid">
                 <div class="collapse navbar-collapse">
                     <ul class="navbar-nav me-auto mb-md-0 h-5">
@@ -154,7 +165,8 @@
                 </div>
             </div>
         </nav>
-        <div id="left-menu" class="position-fixed bg-primary top-0 pt-5 h-100 overflow-auto" style="max-height: 100%; width: var(--left-menu-width); left: calc(-1 * var(--left-menu-width)); transform: none;">
+        <div id="left-tray-handle" draggable="true"></div>
+        <div id="left-tray" draggable="true" class="position-fixed bg-primary top-0 pt-5 h-100 overflow-auto" style="max-height: 100%; width: var(--left-tray-width); left: calc(-1 * var(--left-tray-width)); transform: none;">
             <div class="container-fluid">
                 <div class="row mt-4 border-bottom">
                     <h6>Display ...</h6>
@@ -207,7 +219,7 @@
                 <div class="d-grid gap-3">
                     <div>
                         <div class="mb-4 mx-auto">
-                            <div id="cardContainer" class="row row-cols-auto"></div>
+                            <div id="cardContainer" class="row row-cols-auto gx-3"></div>
                             <footer class="pt-3 mt-4 text-muted border-top">
                                 &copy; Serverperso.com 2022
                             </footer>
@@ -250,7 +262,7 @@
         <!--
             Template for elements in #cardContainer
         -->
-        <div class="cardTemplate col py-mb-3 g-3">
+        <div class="cardTemplate col py-mb-3 gx-3 gy-2">
             <div class="shaper-parent">
                 <div class="shaper-controller-portrait alert-dark"></div>
                 <img class="cardTemplateImage shaper-slave-image"></img>
@@ -264,7 +276,7 @@
                 </a>
             </div>
             <div><p class="text-center text-truncate card-template-title">Title</p></div>
-            <div><p class="text-center text-truncate card-template-title2 text-secondary">Title</p></div>
+            <div><p class="text-center text-truncate card-template-title2 text-secondary mb-1">Title</p></div>
         </div>
     </div>
 </body>

@@ -468,10 +468,7 @@ class SearchManager {
                         const s = match[flt.regexStartIdx].length;
                         const e = s + match[flt.regexMatchIdx].length;
                         // We do this like this to preserve diacritics in the diaplayed string
-                        return `${match[flt.regexStartIdx]}<strong class="text-danger">${d.substring(s, e)}</strong>${match[flt.regexEndIdx]}`;
-
-//                        d.replace(flt.regex,
-//                        `$${flt.regexStartIdx}<strong class="text-danger">$${flt.regexMatchIdx}</strong>$${flt.regexEndIdx}`));
+                        return `${d.substring(0, s)}<strong class="text-danger">${d.substring(s, e)}</strong>${d.substring(e)}`;
                     });
             }
         }

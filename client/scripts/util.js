@@ -3,9 +3,20 @@ export { logDate };
 export { compareAlphanumeric };
 export { colorScale };
 export { absoluteUrl };
+export { withoutDiacritics };
 
 
 const logDate = () => (new Date()).toISOString();
+
+/**
+ * Removes diacritics from a string
+ * 
+ * @param {string} str source string
+ * @returns {string} The string without diacritics
+ */
+function withoutDiacritics(str) {
+    return str.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+}
 
 /**
  * Converts a relative path to an absolute URL, don't change absolute URLs

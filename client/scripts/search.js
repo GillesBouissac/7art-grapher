@@ -1,5 +1,5 @@
 import * as d3 from "https://cdn.skypack.dev/d3@7";
-import { logDate, absoluteUrl } from "./util.js";
+import { logDate, absoluteUrl, withoutDiacritics } from "./util.js";
 import { TitleData, Serie, SerieElement, Film } from "./title.js";
 import params from "./parameters.js";
 
@@ -333,7 +333,7 @@ class SearchManager {
                     return values.filter(v=>{
                         let match = false;
                         if (flt.type==Serie.TypeString) {
-                            match = flt.regex.test(v);
+                            match = flt.regex.test(withoutDiacritics(v));
                         }
                         else if (flt.type==Serie.TypeNumber) {
                             const fv = parseFloat(v);
@@ -455,7 +455,7 @@ class SearchManager {
             if (flt.regex) {
                 const serie = this.data.series(flt.criterion);
                 const serieVals = [...serie.keys()]
-                    .filter(e => flt.regex.test(e))
+                    .filter(e => flt.regex.test(withoutDiacritics(e)))
                     .slice(0,SearchManager.MAX_SEARCH_RESULT);
                 listParent.selectAll("li")
                     .data(serieVals)
@@ -463,8 +463,16 @@ class SearchManager {
                     .classed("dropdown-item", true)
                     .classed("text-truncate", true)
                     .on("mousedown.search-page", this.onSearchListElementChoosen())
-                    .html(d => d.replace(flt.regex,
-                        `$${flt.regexStartIdx}<strong class="text-danger">$${flt.regexMatchIdx}</strong>$${flt.regexEndIdx}`));
+                    .html(d => {
+                        const match = withoutDiacritics(d).match(flt.regex);
+                        const s = match[flt.regexStartIdx].length;
+                        const e = s + match[flt.regexMatchIdx].length;
+                        // We do this like this to preserve diacritics in the diaplayed string
+                        return `${match[flt.regexStartIdx]}<strong class="text-danger">${d.substring(s, e)}</strong>${match[flt.regexEndIdx]}`;
+
+//                        d.replace(flt.regex,
+//                        `$${flt.regexStartIdx}<strong class="text-danger">$${flt.regexMatchIdx}</strong>$${flt.regexEndIdx}`));
+                    });
             }
         }
     }
@@ -525,7 +533,7 @@ class SearchManager {
         const findUserGroup = /\(/g;
         const nbUserGroup = [...value.matchAll(findUserGroup)].length;
         try {
-            const pattern = new RegExp(`^(.*)(${value})(.*)$`,"i");
+            const pattern = new RegExp(`^(.*)(${withoutDiacritics(value)})(.*)$`,"i");
             return {
                 criterion:      criterion,
                 type:           Serie.TypeString,

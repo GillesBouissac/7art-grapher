@@ -150,20 +150,28 @@ class SearchManager {
                     navigator.clipboard
                     .writeText(urls.join("\n"))
                     .then(function() {
-                        d3.select("#toast-end-copy").classed("show", true).classed("bg-primary", true)
+                        d3.select("#toast-end-copy")
+                            .select(".toast-header").classed("bg-primary", true);
+                        d3.select("#toast-end-copy").classed("show", true)
                             .select(".toast-body").text(`${urls.length} links have been copyied in the clipboard`);
                     }, function(err) {
-                        d3.select("#toast-end-copy").classed("show", true).classed("bg-danger", true)
+                        d3.select("#toast-end-copy")
+                            .select(".toast-header").classed("bg-danger", true);
+                        d3.select("#toast-end-copy").classed("show", true)
                             .select(".toast-body").text(`Error copying ${urls.length} links to the clipboard: ${err}`);
                     });
                 }
                 catch(err) {
-                    d3.select("#toast-end-copy").classed("show", true).classed("bg-danger", true)
+                    d3.select("#toast-end-copy")
+                        .select(".toast-header").classed("bg-danger", true);
+                    d3.select("#toast-end-copy").classed("show", true)
                         .select(".toast-body").text(`Error while accessing to the clipboard: ${err}`);
                 }
             }
             else {
-                d3.select("#toast-end-copy").classed("show", true).classed("bg-danger", true)
+                d3.select("#toast-end-copy")
+                    .select(".toast-header").classed("bg-danger", true);
+                d3.select("#toast-end-copy").classed("show", true)
                     .select(".toast-body").text("No result to copy to clipboard");
             }
         };

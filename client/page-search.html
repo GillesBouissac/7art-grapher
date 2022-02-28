@@ -22,8 +22,11 @@
         html {
             font-size: 93%;
         }
+        .card-template-title {
+            margin-bottom: -0.1em;
+        }
         .card-template-title2 {
-            font-size: 88%;
+            font-size: 85%;
         }
         @media (min-width: 576px) {
             .row-cols-auto > * {
@@ -215,16 +218,17 @@
         </div>
     </main>
     <div id="Toasts">
+        <!--
+            Toast to show the end of copy to clipboard
+        -->
         <div id="toast-end-copy-position" class="position-fixed b-auto p-3" style="z-index: 2000;">
             <div id="toast-end-copy" class="toast text-dark" role="alert" aria-live="End of copy to clipboard" aria-atomic="true">
                 <div class="toast-header">
                     <img src="artifacts/logo.svg" class="mb-1 me-2" style="height: 1.15em">
-                    <strong class="me-auto">Copy to clipbard</strong>
+                    <strong class="me-auto text-dark">Copy to clipbard</strong>
                     <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
-                <div class="toast-body">
-                Hello, world! This is a toast message.
-                </div>
+                <div class="toast-body"></div>
             </div>
         </div>
     </div>
@@ -246,7 +250,7 @@
         <!--
             Template for elements in #cardContainer
         -->
-        <div class="cardTemplate col py-mb-3 g-1">
+        <div class="cardTemplate col py-mb-3 g-3">
             <div class="shaper-parent">
                 <div class="shaper-controller-portrait alert-dark"></div>
                 <img class="cardTemplateImage shaper-slave-image"></img>
@@ -259,7 +263,7 @@
                     </div>
                 </a>
             </div>
-            <div><p class="text-center text-truncate card-template-title mb-0">Title</p></div>
+            <div><p class="text-center text-truncate card-template-title">Title</p></div>
             <div><p class="text-center text-truncate card-template-title2 text-secondary">Title</p></div>
         </div>
     </div>

@@ -64,6 +64,9 @@
                 width:6.66%
             }
         }
+        #left-tray {
+            --left-tray-width: min(100%, 30rem);
+        }
         #left-tray-handle {
             position: absolute;
             top: 0;
@@ -71,16 +74,6 @@
             right: 0;
             left: 0;
             width: 1.5em;
-        }
-        #left-tray {
-            z-index: 1100;
-            --left-tray-width: min(100%, 30rem);
-        }
-        #top-menu {
-            z-index: 1200;
-        }
-        #left-tray-handle {
-            z-index: 1300;
         }
         .shaper-parent {
             contain: layout;
@@ -116,9 +109,20 @@
             scrollbar-width: none; /* for Firefox */
             overflow-y: scroll; 
         }
-
         .overflow-scroll-nohandle::-webkit-scrollbar {
             display: none; /* for Chrome, Safari, and Opera */
+        }
+        body {
+            z-index: 0;
+        }
+        #left-tray {
+            z-index: 1100;
+        }
+        #left-tray-handle {
+            z-index: 1110;
+        }
+        #top-menu {
+            z-index: 1200;
         }
     </style>
 
@@ -140,26 +144,29 @@
 <body class="bg-dark text-white position-fixed start-0 end-0 top-0 bottom-0">
     <main>
         <nav id="top-menu" class="navbar navbar-expand bg-secondary p-0 position-fixed start-0 end-0" style="--bs-bg-opacity:0.8;" ria-label="Navigation bar">
-            <div class="container-fluid">
+            <div class="container-fluid h4 my-0">
                 <div class="collapse navbar-collapse">
-                    <ul class="navbar-nav me-auto mb-md-0 h-5">
-                        <li class="nav-item">
-                            <a id="navItemBrand" class="nav-link text-white disabled" href="#">
-                                <img src="artifacts/logo-white.svg" class="mb-1 me-2" style="height: 1.15em">
-                                Database search
-                            </a>
+                    <ul class="navbar-nav me-auto">
+                        <!-- https://www.moviequotes.com/quote/woody-ya-know-youve-handled-this-lost-toy-lif/ -->
+                        <li class="nav-item" data-toggle="tooltip" data-placement="top" title="Open your eyes, Woody. There's plenty of kids out there. Sometimes change can be good">
+                            <a id="menu-item-open-left" class="nav-link active" href="#"><i class="bi bi-justify text-white"></i></a>
                         </li>
                         <!-- https://www.moviequotes.com/quote/phone-home-pointing-at-the-window-et-home-p/ -->
                         <li class="nav-item" data-toggle="tooltip" data-placement="top" title="E.T. home phone">
                             <a id="menu-item-home" class="nav-link active" href="./"><i class="bi bi-house-fill text-white"></i></a>
                         </li>
-                        <!-- https://www.moviequotes.com/quote/woody-ya-know-youve-handled-this-lost-toy-lif/ -->
-                        <li class="nav-item" data-toggle="tooltip" data-placement="top" title="Open your eyes, Woody. There's plenty of kids out there. Sometimes change can be good">
-                            <a id="menu-item-open-left" class="nav-link active" href="#"><i class="bi bi-justify text-white"></i></a>
-                        </li>
                         <!-- https://www.moviequotes.com/quote/you-know-when-you-make-a-copy-of-a-copy-its-not/ -->
                         <li class="nav-item" data-toggle="tooltip" data-placement="top" title="You know when you make a copy of a copy, it's not as sharp as the original.">
                             <a id="menu-item-copy" class="nav-link active" href="#"><i class="bi bi-clipboard-fill text-white"></i></a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="collapse navbar-collapse w-100">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a id="navItemBrand" class="nav-link text-white disabled" href="#">
+                                <img src="artifacts/logo-white.svg" class="mb-1 me-2" style="height: 0.9em">
+                            </a>
                         </li>
                     </ul>
                 </div>
@@ -233,8 +240,8 @@
         <!--
             Toast to show the end of copy to clipboard
         -->
-        <div id="toast-end-copy-position" class="position-fixed b-auto p-3" style="z-index: 2000;">
-            <div id="toast-end-copy" class="toast text-dark" role="alert" aria-live="End of copy to clipboard" aria-atomic="true">
+        <div id="toast-end-copy-position" class="position-fixed b-auto p-3 bottom-100 right-100">
+            <div id="toast-end-copy" class="toast text-dark" role="alert" aria-live="End of copy to clipboard" aria-atomic="true" style="z-index: 2000;">
                 <div class="toast-header">
                     <img src="artifacts/logo.svg" class="mb-1 me-2" style="height: 1.15em">
                     <strong class="me-auto text-dark">Copy to clipbard</strong>

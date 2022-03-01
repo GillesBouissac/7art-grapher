@@ -12,7 +12,8 @@ class UiLeftTray {
      */
     constructor() {
         // Needed to guess drag direction
-        this.lastDragPos = [0, 0];
+        this.lastDragX = 0;
+        this.lastShiftX = 0;
         this.direction = "none";
 
         this.body = d3.select("body");
@@ -23,17 +24,23 @@ class UiLeftTray {
         this.menuToggle
             .on("click.left-tray", this.onOpen());
         this.tray
-            .on("click.left-tray", this.onClick())
+            .on("click", this.onClick());
+/*
             .call(d3.drag()
+                .on("start.left-tray", this.onDragStart())
                 .on("drag.left-tray", this.onDrag())
                 .on("end.left-tray", this.onDrop())
             );
+*/
         this.trayHandle
-            .on("click.left-tray", this.onClick())
+            .on("click", this.onClick());
+/*
             .call(d3.drag()
+                .on("start.left-tray", this.onDragStart())
                 .on("drag.left-tray", this.onDrag())
                 .on("end.left-tray", this.onDrop())
             );
+*/
         this.body
             .on("click.left-tray", this.onClickBackground());
     }
@@ -50,7 +57,7 @@ class UiLeftTray {
          * @param {d3.event} e Event
          */
         return function(e) {
-           // Prevent the background to get the event it will close the menu
+            // Prevent the background to get the event it will close the menu
             e.stopPropagation();
         };
     }
@@ -69,6 +76,24 @@ class UiLeftTray {
     }
 
     /**
+     * Build a "start drag on left menu handle" handler bound to this object
+     * 
+     * @returns {Function} Callback for event
+     */
+    onDragStart() {
+        const _this = this;
+        /**
+         * The "start drag on left menu handle" handler
+         * 
+         * @param {d3.event} e Event
+         */
+        return function(e) {
+            e.sourceEvent.stopPropagation();
+            _this.lastDragX = e.x;
+        };
+    }
+
+    /**
      * Build a "drag on left menu handle" handler bound to this object
      * 
      * @returns {Function} Callback for event
@@ -81,17 +106,21 @@ class UiLeftTray {
          * @param {d3.event} e Event
          */
         return function(e) {
-            if (_this.lastDragPos[0]!=e.x) {
-                if (_this.lastDragPos[0]<e.x) {
+            const delta = e.x-_this.lastDragX;
+            if (delta!=0) {
+                if (delta>0) {
                     _this.direction = "right";
                 }
                 else {
                     _this.direction = "left";
                 }
+                _this.lastDragX = e.x;
+                _this.lastShiftX += delta;
+                const trayCurrentWidth = _this.tray.node().clientWidth;
+                _this.tray.style("transform", `translateX(${Math.min(_this.lastShiftX,trayCurrentWidth)}px)`);
             }
-            _this.lastDragPos = [e.x, e.y];
-            const trayCurrentWidth = _this.tray.node().clientWidth;
-            _this.tray.style("transform", `translateX(${Math.min(e.x,trayCurrentWidth)}px)`);
+            console.log(e);
+            e.sourceEvent.stopPropagation();
         };
     }
 
@@ -104,12 +133,20 @@ class UiLeftTray {
         const _this = this;
         /**
          * The "drop on left menu handle" handler
+         * 
+         * @param {d3.event} e Event
          */
-        return function() {
-            if (_this.direction=="right")
-                _this.tray.style("transform", "translateX(100%)");
-            else
+        return function(e) {
+            if (_this.direction=="right") {
+                _this.lastShiftX = _this.tray.node().clientWidth;
+                _this.tray.style("transform", `translateX(${_this.lastShiftX}px)`);
+            }
+            else {
+                _this.lastShiftX = 0;
                 _this.tray.style("transform", "none");
+            }
+            console.log(e);
+            e.sourceEvent.stopPropagation();
         };
     }
 

@@ -13,36 +13,61 @@ class UiLeftTray {
     constructor() {
         // Needed to guess drag direction
         this.lastDragX = 0;
-        this.lastShiftX = 0;
+        this.position = 0;
         this.direction = "none";
 
         this.body = d3.select("body");
         this.menuToggle = d3.select("#menu-item-open-left");
         this.tray = d3.select("#left-tray");
         this.trayHandle = d3.select("#left-tray-handle");
+        this.drag = d3.drag()
+            .on("start.left-tray", this.onDragStart())
+            .on("drag.left-tray", this.onDrag())
+            .on("end.left-tray", this.onDrop());
 
         this.menuToggle
             .on("click.left-tray", this.onOpen());
         this.tray
-            .on("click", this.onClick());
-/*
-            .call(d3.drag()
-                .on("start.left-tray", this.onDragStart())
-                .on("drag.left-tray", this.onDrag())
-                .on("end.left-tray", this.onDrop())
-            );
-*/
+            .on("click", this.onClick())
+            .call(this.drag);
         this.trayHandle
-            .on("click", this.onClick());
-/*
-            .call(d3.drag()
-                .on("start.left-tray", this.onDragStart())
-                .on("drag.left-tray", this.onDrag())
-                .on("end.left-tray", this.onDrop())
-            );
-*/
+            .on("click", this.onClick())
+            .call(this.drag);
         this.body
             .on("click.left-tray", this.onClickBackground());
+    }
+
+    /**
+     * Returns the current tray position
+     * 
+     * @returns {number} position
+     */
+    getTrayPosition() {
+        return this.position;
+    }
+
+    /**
+     * Opens the tray
+     */
+    openTray() {
+        this.setTrayPosition(this.tray.node().clientWidth);
+    }
+
+    /**
+     * Closes the tray
+     */
+    closeTray() {
+        this.setTrayPosition(0);
+    }
+
+    /**
+     * Forces current tray position
+     * 
+     * @param {number} pos new position
+     */
+    setTrayPosition(pos) {
+        this.position = pos;
+        this.tray.style("transform", `translateX(${this.position}px)`);
     }
 
     /**
@@ -57,7 +82,6 @@ class UiLeftTray {
          * @param {d3.event} e Event
          */
         return function(e) {
-            // Prevent the background to get the event it will close the menu
             e.stopPropagation();
         };
     }
@@ -71,7 +95,7 @@ class UiLeftTray {
         const _this = this;
         /** The click on background handler */
         return function() {
-            _this.tray.style("transform", "none");
+            _this.closeTray();
         };
     }
 
@@ -88,7 +112,7 @@ class UiLeftTray {
          * @param {d3.event} e Event
          */
         return function(e) {
-            e.sourceEvent.stopPropagation();
+            _this.direction = "none";
             _this.lastDragX = e.x;
         };
     }
@@ -115,12 +139,9 @@ class UiLeftTray {
                     _this.direction = "left";
                 }
                 _this.lastDragX = e.x;
-                _this.lastShiftX += delta;
                 const trayCurrentWidth = _this.tray.node().clientWidth;
-                _this.tray.style("transform", `translateX(${Math.min(_this.lastShiftX,trayCurrentWidth)}px)`);
+                _this.setTrayPosition(Math.min(_this.position+delta,trayCurrentWidth));
             }
-            console.log(e);
-            e.sourceEvent.stopPropagation();
         };
     }
 
@@ -133,20 +154,14 @@ class UiLeftTray {
         const _this = this;
         /**
          * The "drop on left menu handle" handler
-         * 
-         * @param {d3.event} e Event
          */
-        return function(e) {
+        return function() {
             if (_this.direction=="right") {
-                _this.lastShiftX = _this.tray.node().clientWidth;
-                _this.tray.style("transform", `translateX(${_this.lastShiftX}px)`);
+                _this.openTray();
             }
-            else {
-                _this.lastShiftX = 0;
-                _this.tray.style("transform", "none");
+            else if (_this.direction=="left") {
+                _this.closeTray();
             }
-            console.log(e);
-            e.sourceEvent.stopPropagation();
         };
     }
 
@@ -164,10 +179,10 @@ class UiLeftTray {
          */
         return function(e) {
             e.stopPropagation();
-            if (_this.tray.style("transform") == "none")
-                _this.tray.style("transform", "translateX(100%)");
+            if (_this.getTrayPosition() == 0)
+                _this.openTray();
             else
-                _this.tray.style("transform", "none");
+                _this.closeTray();
         };
     }
 

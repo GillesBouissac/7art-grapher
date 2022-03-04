@@ -1,0 +1,178 @@
+html {
+    font-size: 93%;
+}
+.navbar-toggler, .nav-link {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+    display: flex;
+}
+.card-template-title {
+    margin-bottom: -0.1em;
+}
+.card-template-title2 {
+    font-size: 85%;
+}
+
+.row-cols-auto>* {
+    flex: 0 0 auto;
+    width: 33.33%
+}
+#fast-search-input {
+    width: 100%;
+}
+#select-data-position {
+    display: flex;
+    flex-flow: row wrap;
+}
+#select-data-position:not(.show) {
+    display: none !important;
+}
+
+.collapse:not(.show) {
+    display: none !important;
+}
+
+@media (min-width: 576px) {
+    .row-cols-auto>* {
+        flex: 0 0 auto;
+        width: 20.00%
+    }
+    #fast-search-input {
+        width: 100%;
+    }
+}
+
+@media (min-width: 768px) {
+    .row-cols-auto>* {
+        flex: 0 0 auto;
+        width: 16.66%
+    }
+    #fast-search-input {
+        width: 100%;
+    }
+}
+
+@media (min-width: 992px) {
+    .row-cols-auto>* {
+        flex: 0 0 auto;
+        width: 12.5%
+    }
+    #fast-search-input {
+        width: 75%;
+    }
+}
+
+@media (min-width: 1200px) {
+    .row-cols-auto>* {
+        flex: 0 0 auto;
+        width: 10.00%
+    }
+    #fast-search-input {
+        width: 75%;
+    }
+}
+
+@media (min-width: 1500px) {
+    .row-cols-auto>* {
+        flex: 0 0 auto;
+        width: 8.33%
+    }
+    #fast-search-input {
+        width: 50%;
+    }
+}
+
+@media (min-width: 1800px) {
+    .row-cols-auto>* {
+        flex: 0 0 auto;
+        width: 6.66%
+    }
+    #fast-search-input {
+        width: 50%;
+    }
+}
+
+#left-tray {
+    --left-tray-width: min(100%, 30rem);
+}
+
+#left-tray-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 1.5em;
+}
+
+.shaper-parent {
+    contain: layout;
+    padding: 0;
+}
+
+.shaper-controller-portrait {
+    display: block;
+    padding-bottom: 150%;
+}
+
+.shaper-slave,
+.shaper-slave-image,
+.shaper-slave-overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+}
+
+.shaper-slave-overlay {
+    opacity: 0%;
+    height: 100%;
+}
+
+.shaper-slave-overlay:hover {
+    opacity: 100%;
+}
+
+.shaper-slave-image {
+    background-size: cover;
+    background-position: 50%;
+    width: 100%;
+    height: 100%;
+}
+
+/* hide scrollbar but allow scrolling */
+.overflow-scroll-nohandle {
+    -ms-overflow-style: none;
+    /* for Internet Explorer, Edge */
+    scrollbar-width: none;
+    /* for Firefox */
+    overflow-y: scroll;
+}
+
+.overflow-scroll-nohandle::-webkit-scrollbar {
+    display: none;
+    /* for Chrome, Safari, and Opera */
+}
+
+body {
+    z-index: 0;
+}
+
+#left-tray {
+    z-index: 1100;
+}
+
+#left-tray-handle {
+    z-index: 1110;
+}
+
+#top-menu {
+    z-index: 1200;
+}
+
+.toast, #select-data-position {
+    z-index: 2000;
+}

@@ -1,42 +1,12 @@
-import { compareAlphanumeric, logDate } from "./util.js";
+import { compareAlphanumeric, logDate, AutoMap, absoluteUrl } from "./util.js";
 import params from "./parameters.js";
 
 export { TitleData, Serie, SerieElement, Film };
+export { imageUrl, detailUrl };
 
 /**
  * File dedicated to title.json parsing and indexing
  */
-
-/**
- * Map that allow entries creation and get in one call.
- */
- class AutoMap extends Map {
-
-    /**
-     * Each list of object must have a name
-     * 
-     * @param {string} name The map name
-     */
-    constructor(name) {
-        super();
-        this._name = name;
-    }
-
-    /**
-     * Returns the element at key event if absent before the call
-     * 
-     * @see {@link https://www.baeldung.com/java-map-computeifabsent.}
-     * @param {string} key The key element to get or create
-     * @param {Function} mappingFunction The function to call to create a missing object
-     * @returns {Map<any,any>} The element at "key"
-     */
-    computeIfAbsent(key, mappingFunction) {
-        if ( !this.has(key) ) {
-            this.set(key, mappingFunction(key));
-        }
-        return this.get(key);
-     }
-}
 
 /**
  * Map of data for one serie element.
@@ -313,6 +283,37 @@ class TitleData {
      * @param {string} name Serie name
      * @returns {Serie?} The required Serie or the whole Map if no name given or null if not found
      */
-     series(name) { return name ? this._series.get(name) : null; }
+    series(name) { return this._series.getOrCreate(name, name); }
 }
 
+/**
+ * Builds the Image Url from the pattern for a given serie type
+ * 
+ * @param {string} serieName Serie name
+ * @param {object} variables List of variables
+ * @returns {string} The URL
+ */
+function imageUrl(serieName, variables) {
+    const imgUrlPattern = Serie.PictureUrls[serieName];
+    if (imgUrlPattern) {
+        const resolver = new Function("return `"+imgUrlPattern.replaceAll("${","${this.") +"`;");
+        return absoluteUrl(resolver.call(variables));
+    }
+    return null;
+}
+
+/**
+ * Builds the Details Url from the pattern for a given serie type
+ * 
+ * @param {string} serieName Serie name
+ * @param {object} variables List of variables
+ * @returns {string} The URL
+ */
+function detailUrl(serieName, variables) {
+    const detailUrlPattern = Serie.DetailInformationUrls[serieName];
+    if (detailUrlPattern) {
+        const resolver = new Function("return `"+detailUrlPattern.replaceAll("${","${this.") +"`;");
+        return absoluteUrl(resolver.call(variables));
+    }
+    return null;
+}

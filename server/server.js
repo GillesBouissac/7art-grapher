@@ -19,6 +19,7 @@ const ext2mime = {
     ".html":    "text/html",
     ".svg":     "image/svg+xml",
     ".png":     "image/png",
+    ".css":     "text/css",
 };
 
 const ifLogActive = function ( req, closure ) {

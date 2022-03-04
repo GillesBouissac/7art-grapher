@@ -1,12 +1,16 @@
 import * as d3 from "https://cdn.skypack.dev/d3@7";
+
 export { logDate };
 export { compareAlphanumeric };
 export { colorScale };
 export { absoluteUrl };
 export { withoutDiacritics };
+export { AutoMap };
+export { Listeners };
 
 
 const logDate = () => (new Date()).toISOString();
+const colorScale = () => (new ColorScale());
 
 /**
  * Removes diacritics from a string
@@ -51,11 +55,58 @@ function absoluteUrl (inputPath) {
  * @param {string} b The second string to compare
  * @returns {number} -1(a<b)/0(a==b)/+1(a>b)
  */
-const compareAlphanumeric = function(a,b) {
+function compareAlphanumeric(a,b) {
     return (""+a).localeCompare((""+b),undefined,{numeric:true,sensitivity:"base"});
-};
+}
 
-const colorScale = () => new ColorScale();
+/**
+ * Map that allow entries creation and get in one call.
+ */
+class AutoMap extends Map {
+
+    /**
+     * Each list of object must have a name
+     * 
+     * @param {string} name The map name
+     */
+    constructor(name) {
+        super();
+        this._name = name;
+    }
+
+    /**
+     * Returns the element at key event if absent before the call
+     * 
+     * @see {@link https://www.baeldung.com/java-map-computeifabsent.}
+     * @param {string} key The key element to get or create
+     * @param {Function} mappingFunction The function to call to create a missing object
+     * @returns {Map<any,any>} The element at "key"
+     */
+    computeIfAbsent(key, mappingFunction) {
+        if ( !this.has(key) ) {
+            this.set(key, mappingFunction(key));
+        }
+        return this.get(key);
+     }
+}
+
+/**
+ * Map of listeners.
+ */
+ class Listeners extends AutoMap {
+    constructor(mgr) {
+        super("Filter events listeners");
+        this.mgr = mgr;
+    }
+    getOrCreate(event) {
+        return super.computeIfAbsent(event, () => new Set());
+    }
+    fire(event) {
+        const args = [...arguments].slice(1);
+        this.getOrCreate(event).forEach(cb => cb.call(this.mgr, ...args));
+    }
+}
+
 class ColorScale extends Function {
 
     constructor() {

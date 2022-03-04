@@ -26,7 +26,7 @@ class UiLeftTray {
             .on("end.left-tray", this.onDrop());
 
         this.menuToggle
-            .on("click.left-tray", this.onOpen());
+            .on("click.left-tray", this.onToggle());
         this.tray
             .on("click", this.onClick())
             .call(this.drag);
@@ -49,14 +49,14 @@ class UiLeftTray {
     /**
      * Opens the tray
      */
-    openTray() {
+    open() {
         this.setTrayPosition(this.tray.node().clientWidth);
     }
 
     /**
      * Closes the tray
      */
-    closeTray() {
+    close() {
         this.setTrayPosition(0);
     }
 
@@ -95,7 +95,7 @@ class UiLeftTray {
         const _this = this;
         /** The click on background handler */
         return function() {
-            _this.closeTray();
+            _this.close();
         };
     }
 
@@ -157,10 +157,10 @@ class UiLeftTray {
          */
         return function() {
             if (_this.direction=="right") {
-                _this.openTray();
+                _this.open();
             }
             else if (_this.direction=="left") {
-                _this.closeTray();
+                _this.close();
             }
         };
     }
@@ -170,7 +170,7 @@ class UiLeftTray {
      * 
      * @returns {Function} Callback for event
      */
-     onOpen() {
+     onToggle() {
         const _this = this;
         /**
          * The menu-item-open-left button handler
@@ -180,9 +180,9 @@ class UiLeftTray {
         return function(e) {
             e.stopPropagation();
             if (_this.getTrayPosition() == 0)
-                _this.openTray();
+                _this.open();
             else
-                _this.closeTray();
+                _this.close();
         };
     }
 

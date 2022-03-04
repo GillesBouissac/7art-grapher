@@ -1,8 +1,14 @@
 import * as d3 from "https://cdn.skypack.dev/d3@7";
-import { logDate, absoluteUrl, withoutDiacritics } from "./util.js";
-import { TitleData, Serie, SerieElement, Film } from "./title.js";
+import { logDate, withoutDiacritics } from "./util.js";
+import { TitleData, Serie, SerieElement, Film, detailUrl, imageUrl } from "./title.js";
 import { UiLeftTray } from "./ui-left-tray.js";
+import { UiFastSearch } from "./ui-fast-search.js";
+import { UiSelectData } from "./ui-serie-selector.js";
+
+import { newSearchModel, createStringFilter, createIntRangeFilter } from "./searchModel.js";
 import params from "./parameters.js";
+
+/** @typedef {import("./searchModel.js").FilterParameters } FilterParameters */
 
 export { localSearch };
 
@@ -11,53 +17,36 @@ export { localSearch };
  * 
  * @returns {SearchManager} The new search manager
  */
-const localSearch = function() {
+const localSearch = function () {
     return new SearchManager();
 };
-
-/**
- * Note: regex<xxx> fields must have "regex" in their name
- * this is used to filter them out when serialising.
- * 
- * @typedef {object} FilterParameters
- * @property {string} type Filter type, one of Serie.Type<xxx>
- * @property {string} criterion Filter criterion
- * @property {string} value User input value for a text filter
- * @property {number} min Filter min value for a numeric filter
- * @property {number} max Filter max value for a numeric filter
- * @property {RegExp} regex Pattern for a text filter
- * @property {number} regexStartIdx Index of the first (unmatching) group in pattern
- * @property {number} regexMatchIdx Index of the first (matching) group in pattern
- * @property {number} regexEndIdx Index of the third (unmatching) group in pattern
- */
 
 /**
  * Class for HTML filter elements management.
  */
 class SearchManager {
-    static DATA_DEFAULT = "Film";
     static MAX_SEARCH_RESULT = 100;
     static CARDS_PER_PAGE = 170;
 
     constructor() {
-        /** @type {TitleData} */
-        this.data = new TitleData();
-        /** @type {Map<string,FilterParameters>} */
-        this.activeFilters = new Map();
-        /** @type {string} */
-        this.dataType = SearchManager.DATA_DEFAULT;
-        /** @type {d3.selection} */
+        /** @type {d3.Selection} */
         this.activeFilterContainer = d3.select("#activeFilterContainer");
         this.activeFilterTemplate = d3.select("#Templates").select(".activeFilterTemplate");
         this.cardContainer = d3.select("#cardContainer");
         this.cardTemplate = d3.select("#Templates").select(".cardTemplate");
         this.resultCache = null;
         this.leftTray = new UiLeftTray();
-        this.restore();
-    }
+        this.fastSearch = new UiFastSearch();
+        this.serieSelector = new UiSelectData()
+            .on("selected", this.onDataTypeChanged())
+            ;
 
-    dataReceived(content) {
-        this.data.parse(content);
+        this.model = newSearchModel()
+            .on("deleted", this.onFilterDeleted())
+            .on("created", this.onFilterCreated())
+            .on("restore-end", this.onRestoreEnd())
+            ;
+        this.model.restore();
     }
 
     start() {
@@ -67,64 +56,49 @@ class SearchManager {
         console.log(`${logDate()} Request ${dataPath}`);
         d3.json(dataPath)
             .then(function (content) {
-                _this.dataReceived(content);
+                const data = new TitleData();
+                data.parse(content);
+                _this.model.data(data);
+                _this.serieSelector.series(
+                    data.columns().filter(c => Object.keys(Serie.PictureUrls).includes(c)));
                 _this.activateDisplay();
             });
     }
 
     /**
-     * Reset display
+     * Build a filter deleted handler
+     * 
+     * @returns {Function} Handler
      */
-    reset() {
-        for ( let key of this.activeFilters.keys() ) {
-            this.deleteHtmlActiveFilter(key);
-        }
-        this.activeFilters = new Map();
-        this.dataType = SearchManager.DATA_DEFAULT;
-    }
-
-    /**
-     * Save filters context to localStorage
-     */
-    save() {
-        let persistentData = {
-            dataType: this.dataType,
-            activeFilters: {}
+    onFilterDeleted() {
+        const _this = this;
+        return function(key) {
+            _this.deleteHtmlActiveFilter(key);
         };
-        for ( let key of this.activeFilters.keys() ) {
-            persistentData.activeFilters[key] = this.activeFilters.get(key);
-        }
-        const persistentDataStr = JSON.stringify(persistentData, (k,v) => k.includes("regex")?undefined:v);
-        localStorage.setItem("filmSearchContext",persistentDataStr);
     }
 
     /**
-     * Restore filters from localStorage
+     * Build a filter created handler
+     * 
+     * @returns {Function} Handler
      */
-    restore() {
-        this.reset();
-        const persistentDataStr = localStorage.getItem("filmSearchContext");
-        if (persistentDataStr) {
-            try {
-                const persistentData = JSON.parse(persistentDataStr);
-                this.dataType = persistentData.dataType;
-                for ( let key of Object.keys(persistentData.activeFilters) ) {
-                    const f = persistentData.activeFilters[key];
-                    if (f.type==Serie.TypeString) {
-                        this.activeFilters.set(key, this.createStringFilter(f.criterion,f.value));
-                    }
-                    else if (f.type==Serie.TypeNumber) {
-                        this.activeFilters.set(key, this.createIntRangeFilter(f.criterion,f.min,f.max));
-                    }
-                }
-                for ( let key of this.activeFilters.keys() ) {
-                    this.addHtmlActiveFilter(key);
-                }
-                this.updateHtmlResults();
-            } catch (error) {
-                // Ignore filter restore
-            }
-        }
+    onFilterCreated() {
+        const _this = this;
+        return function(key, data) {
+            _this.addHtmlActiveFilter(key, data);
+        };
+    }
+
+    /**
+     * Build a filter restore handler
+     * 
+     * @returns {Function} Handler
+     */
+    onRestoreEnd() {
+        const _this = this;
+        return function() {
+            _this.updateHtmlResults();
+        };
     }
 
     /**
@@ -132,38 +106,38 @@ class SearchManager {
      * 
      * @returns {Function} Callback for event
      */
-    onCopyLinks() {
+    onCopyLinksButton() {
         const _this = this;
         /**
          * The menu-item-copy button handler
          * 
-         * @param {Event} e DOM event
+         * @param {d3.event} e event
          */
-        return function(e) {
+        return function (e) {
             d3.select("#toast-end-copy-position").style("top", `${e.clientY}px`).style("left", `${e.clientX}px`);
             if (_this.resultCache) {
                 const urls = [];
                 _this.resultCache.forEach(se => {
-                    const vars = _this.buildPatternVariables(se);
-                    const imgUrl = _this.buildDetailUrl(_this.dataType, vars);
+                    const vars = _this.model.buildPatternVariables(se);
+                    const imgUrl = detailUrl(_this.serieSelector.selected(), vars);
                     if (imgUrl) urls.push(imgUrl);
                 });
                 try {
                     navigator.clipboard
-                    .writeText(urls.join("\n"))
-                    .then(function() {
-                        d3.select("#toast-end-copy")
-                            .select(".toast-header").classed("bg-primary", true);
-                        d3.select("#toast-end-copy").classed("show", true)
-                            .select(".toast-body").text(`${urls.length} links have been copyied in the clipboard`);
-                    }, function(err) {
-                        d3.select("#toast-end-copy")
-                            .select(".toast-header").classed("bg-danger", true);
-                        d3.select("#toast-end-copy").classed("show", true)
-                            .select(".toast-body").text(`Error copying ${urls.length} links to the clipboard: ${err}`);
-                    });
+                        .writeText(urls.join("\n"))
+                        .then(function () {
+                            d3.select("#toast-end-copy")
+                                .select(".toast-header").classed("bg-primary", true);
+                            d3.select("#toast-end-copy").classed("show", true)
+                                .select(".toast-body").text(`${urls.length} links have been copyied in the clipboard`);
+                        }, function (err) {
+                            d3.select("#toast-end-copy")
+                                .select(".toast-header").classed("bg-danger", true);
+                            d3.select("#toast-end-copy").classed("show", true)
+                                .select(".toast-body").text(`Error copying ${urls.length} links to the clipboard: ${err}`);
+                        });
                 }
-                catch(err) {
+                catch (err) {
                     d3.select("#toast-end-copy")
                         .select(".toast-header").classed("bg-danger", true);
                     d3.select("#toast-end-copy").classed("show", true)
@@ -186,10 +160,11 @@ class SearchManager {
      */
     onDataTypeChanged() {
         const _this = this;
-        /** The data selection change handler */
-        return function() {
-            _this.dataType = this.value;
-            _this.save();
+        /**
+         * The data selection change handler
+         */
+        return function () {
+            _this.model.save();
             _this.updateHtmlResults();
         };
     }
@@ -199,10 +174,10 @@ class SearchManager {
      * 
      * @returns {Function} Callback for "click" event on DOM Element
      */
-    onFilterTypeChanged() {
+    onFilterTypeSelector() {
         const _this = this;
         /** The filter type selector change handler */
-        return function() {
+        return function () {
             _this.updateHtmlFilterAdd();
         };
     }
@@ -215,13 +190,12 @@ class SearchManager {
     onFilterAdd() {
         const _this = this;
         /** The filter add button handler */
-        return function() {
+        return function () {
             const filterData = _this.getNewFilterHtml();
-            if ( filterData ) {
-                const newFilterKey = _this.activeFilters.size;
-                _this.activeFilters.set(newFilterKey, filterData);
-                _this.addHtmlActiveFilter(newFilterKey);
-                _this.save();
+            if (filterData) {
+                const newFilterKey = _this.model.create(filterData);
+                _this.model.save();
+                _this.addHtmlActiveFilter(newFilterKey, filterData);
                 _this.updateHtmlResults();
                 _this.clearHtmlFilterAdd();
             }
@@ -233,13 +207,13 @@ class SearchManager {
      * 
      * @returns {Function} Callback for "click" event on DOM Button
      */
-    onFilterDelete() {
+    onFilterDeleteButton() {
         const _this = this;
         /** The filter delete button handler */
-        return function() {
+        return function () {
             this._filterData.parentSelection.remove();
-            _this.activeFilters.delete(this._filterData.newFilterKey);
-            _this.save();
+            _this.model.delete(this._filterData.newFilterKey);
+            _this.model.save();
             _this.updateHtmlResults();
         };
     }
@@ -255,7 +229,7 @@ class SearchManager {
          * The enter focus handler in search text field.
          * Opens the dropdown and initialize it with data matching the search text
          */
-        return function() {
+        return function () {
             const dropdown = d3.select("#newFilterSearchList");
             dropdown.classed("show", true);
             _this.refreshHtmlSearchList();
@@ -272,7 +246,7 @@ class SearchManager {
          * The leave focus handler from search text field.
          * Closes the dropdown
          */
-        return function() {
+        return function () {
             const dropdown = d3.select("#newFilterSearchList");
             dropdown.classed("show", false);
         };
@@ -289,7 +263,7 @@ class SearchManager {
          * The enter focus handler in search text field.
          * Opens the dropdown and initialize it with data matching the search text
          */
-        return function() {
+        return function () {
             _this.refreshHtmlSearchList();
         };
     }
@@ -306,89 +280,9 @@ class SearchManager {
          * @param {d3.event} e Event
          * @param {string} d Selected text
          */
-        return function(e,d) {
-            d3.select("#newFilterSearchText").property("value",d);
+        return function (e, d) {
+            d3.select("#newFilterSearchText").property("value", d);
         };
-    }
-
-    /**
-     * Retrieves the films that matches every filters (AND)
-     * 
-     * @returns {SerieElement} Matching data
-     */
-    getFilteredData() {
-        const filters = [...this.activeFilters.values()];
-        let serieElements = [...this.data.series(this.dataType).values()];
-        return serieElements.filter(se => {
-            const films = [...se.values()];
-            return filters.every(flt =>{
-                return films.filter(film => {
-                    const values = [...film.get(flt.criterion).keys()];
-                    return values.filter(v=>{
-                        let match = false;
-                        if (flt.type==Serie.TypeString) {
-                            match = flt.regex.test(withoutDiacritics(v));
-                        }
-                        else if (flt.type==Serie.TypeNumber) {
-                            const fv = parseFloat(v);
-                            match = isNaN(fv) ? false : (flt.min<=fv && fv<=flt.max);
-                        }
-                        return match;
-                    }).length>0;
-                }).length>0;
-            });
-        });
-    }
-
-    /**
-     * Builds a list of variables to be used in patterns on data
-     * 
-     * @param {SerieElement} serieElement The source of data
-     * @returns {object} The dictionary of extracted parameters
-     */
-    buildPatternVariables(serieElement) {
-        let imdb = "";
-        let tmdb = "";
-        let year = "";
-        const films = [...serieElement.values()];
-        if (films.length==1) {
-            imdb = films[0].get(Serie.Names.imdbId)?.values().next().value?.name();
-            tmdb = films[0].get(Serie.Names.tmdbId)?.values().next().value?.name();
-            year = films[0].get(Serie.Names.year)?.values().next().value?.name();
-        }
-        return {name:serieElement.name(),imdb:imdb?imdb:tmdb,tmdb:tmdb?tmdb:imdb,year:year};
-    }
-
-    /**
-     * Builds the Image Url from the pattern for a given serie type
-     * 
-     * @param {string} serieName Serie name
-     * @param {object} variables List of variables
-     * @returns {string} The URL
-     */
-    buildImageUrl(serieName, variables) {
-        const imgUrlPattern = Serie.PictureUrls[serieName];
-        if (imgUrlPattern) {
-            const resolver = new Function("return `"+imgUrlPattern.replaceAll("${","${this.") +"`;");
-            return absoluteUrl(resolver.call(variables));
-        }
-        return null;
-    }
-
-    /**
-     * Builds the Details Url from the pattern for a given serie type
-     * 
-     * @param {string} serieName Serie name
-     * @param {object} variables List of variables
-     * @returns {string} The URL
-     */
-    buildDetailUrl(serieName, variables) {
-        const detailUrlPattern = Serie.DetailInformationUrls[serieName];
-        if (detailUrlPattern) {
-            const resolver = new Function("return `"+detailUrlPattern.replaceAll("${","${this.") +"`;");
-            return absoluteUrl(resolver.call(variables));
-        }
-        return null;
     }
 
     /**
@@ -399,18 +293,18 @@ class SearchManager {
      */
     newHtmlCard(se) {
         const newCard = this.cardTemplate.clone(true).remove();
-        const vars = this.buildPatternVariables(se);
-        const imgUrl = this.buildImageUrl(this.dataType, vars);
-        const detailUrl = this.buildDetailUrl(this.dataType, vars);
+        const vars = this.model.buildPatternVariables(se);
+        const imgUrl = imageUrl(this.serieSelector.selected(), vars);
+        const detUrl = detailUrl(this.serieSelector.selected(), vars);
         if (imgUrl) {
             newCard.selectAll(".cardTemplateImage").attr("src", imgUrl);
         }
-        if (detailUrl) {
-            newCard.selectAll(".cardTemplateUrl").attr("href", detailUrl);
+        if (detUrl) {
+            newCard.selectAll(".cardTemplateUrl").attr("href", detUrl);
         }
         newCard.selectAll(".card-template-title").text(se.name());
         const films = [...se.values()];
-        if (films.length==1 && (films[0] instanceof Film)) {
+        if (films.length == 1 && (films[0] instanceof Film)) {
             const imdbr = films[0].get(Serie.Names.imdbRating)?.values().next().value?.name();
             const tmdbr = films[0].get(Serie.Names.tmdbRating)?.values().next().value?.name();
             const year = films[0].get(Serie.Names.year)?.values().next().value?.name();
@@ -428,10 +322,10 @@ class SearchManager {
      * Refreshes the result list.
      */
     updateHtmlResults() {
-        this.resultCache = this.getFilteredData();
+        this.resultCache = this.model.getFilteredData(this.serieSelector.selected());
         const _this = this;
         this.cardContainer.selectAll(".cardTemplate")
-            .data(_this.resultCache.slice(0,SearchManager.CARDS_PER_PAGE), se => se.name())
+            .data(_this.resultCache.slice(0, SearchManager.CARDS_PER_PAGE), se => se.name())
             .join(
                 enter => enter
                     .append((se) => _this.newHtmlCard(se).node())
@@ -445,12 +339,12 @@ class SearchManager {
     refreshHtmlSearchList() {
         const flt = this.getNewFilterHtml();
         const listParent = d3.select("#newFilterSearchList");
-        if (flt && flt.type==Serie.TypeString) {
+        if (flt && flt.type == Serie.TypeString) {
             if (flt.regex) {
-                const serie = this.data.series(flt.criterion);
+                const serie = this.model.data().series(flt.criterion);
                 const serieVals = [...serie.keys()]
                     .filter(e => flt.regex.test(withoutDiacritics(e)))
-                    .slice(0,SearchManager.MAX_SEARCH_RESULT);
+                    .slice(0, SearchManager.MAX_SEARCH_RESULT);
                 listParent.selectAll("li")
                     .data(serieVals)
                     .join("li")
@@ -472,8 +366,9 @@ class SearchManager {
      * Builds a new active filter given by its key in the GUI.
      * 
      * @param {number} filterKey Key of the filter to create
+     * @param {FilterParameters} filterData Data of the filter to create
      */
-    addHtmlActiveFilter(filterKey) {
+    addHtmlActiveFilter(filterKey, filterData) {
         const htmlFilter = this.activeFilterTemplate
             .clone(true)
             .attr("filter-key", filterKey)
@@ -481,19 +376,18 @@ class SearchManager {
 
         htmlFilter.style("display", "flex");
         const deleteButton = htmlFilter.select(".activeFilterDeleteButton")
-            .on("click", this.onFilterDelete());
+            .on("click", this.onFilterDeleteButton());
         deleteButton.node()._filterData = {
             parentSelection: htmlFilter,
             newFilterKey: filterKey
         };
-        const filterData = this.activeFilters.get(filterKey);
-        if ( filterData.value ) {
+        if (filterData.value) {
             htmlFilter.select(".activeFilterCriterion")
                 .html(`<strong>${filterData.criterion}</strong> matches`);
             htmlFilter.select(".activeFilterValue")
                 .text(filterData.value);
         }
-        else if ( filterData.min ) {
+        else if (filterData.min) {
             htmlFilter.select(".activeFilterCriterion")
                 .html(`<strong>${filterData.criterion}</strong> in range`);
             htmlFilter.select(".activeFilterValue")
@@ -514,52 +408,6 @@ class SearchManager {
     }
 
     /**
-     * String filter builder.
-     * 
-     * @param {string} criterion The data on which this filter must be applied
-     * @param {string} value The user pattern to match
-     * @returns {FilterParameters} The new filter
-     */
-    createStringFilter(criterion, value) {
-        const findUserGroup = /\(/g;
-        const nbUserGroup = [...value.matchAll(findUserGroup)].length;
-        try {
-            const pattern = new RegExp(`^(.*)(${withoutDiacritics(value)})(.*)$`,"i");
-            return {
-                criterion:      criterion,
-                type:           Serie.TypeString,
-                value:          value,
-                regex:          pattern,
-                regexStartIdx:  1,
-                regexMatchIdx:  2,
-                regexEndIdx:    3+nbUserGroup
-            };
-        } catch (error) {return null;}
-    }
-
-    /**
-     * Integer range filter builder.
-     * 
-     * @param {string} criterion The data on which this filter must be applied
-     * @param {string} min The user min value
-     * @param {string} max The user max value
-     * @returns {FilterParameters} The new filter
-     */
-    createIntRangeFilter(criterion, min, max) {
-        const minv = parseFloat(min);
-        const maxv = parseFloat(max);
-        if ( isNaN(minv) || isNaN(maxv) || maxv<minv) {
-            return null;
-        }
-        return {
-            criterion: criterion,
-            type: Serie.TypeNumber,
-            min: minv,
-            max: maxv
-        };
-    }
-
-    /**
      * Resets the filer add section to show that there is no filter in progress.
      */
     clearHtmlFilterAdd() {
@@ -577,7 +425,7 @@ class SearchManager {
         d3.select("#newFilterNumberMaxContainer").style("display", "none");
         d3.select("#newFilterAddContainer").style("display", "none");
         const type = Serie.getType(d3.select("#newFilterTypeSelector").property("value"));
-        switch ( type ) {
+        switch (type) {
             case Serie.TypeNumber:
                 d3.select("#newFilterNumberMinContainer").style("display", "block");
                 d3.select("#newFilterNumberMaxContainer").style("display", "block");
@@ -601,13 +449,13 @@ class SearchManager {
     getNewFilterHtml() {
         const filteredData = d3.select("#newFilterTypeSelector").property("value");
         const type = Serie.getType(filteredData);
-        switch ( type ) {
+        switch (type) {
             case Serie.TypeNumber:
-                return this.createIntRangeFilter(filteredData,
+                return createIntRangeFilter(filteredData,
                     d3.select("#newFilterNumberMin").property("value"),
                     d3.select("#newFilterNumberMax").property("value"));
             case Serie.TypeString:
-                return this.createStringFilter(filteredData,
+                return createStringFilter(filteredData,
                     d3.select("#newFilterSearchText").property("value"));
             case Serie.TypeNull:
             default:
@@ -620,34 +468,25 @@ class SearchManager {
      * Initializes the GUI to match the received data from server.
      */
     activateDisplay() {
-        const _this = this;
-        d3.select("#displayedSerieSelector")
-            .on("change", this.onDataTypeChanged());
         d3.select("#newFilterSearchText")
             .on("focus", this.onEnterFilterSearch())
             .on("focusout", this.onLeaveFilterSearch())
             .on("keyup", this.onSearchTextChanged());
         d3.select("#newFilterTypeSelector")
-            .on("change", this.onFilterTypeChanged())
-            .append("option").text(Serie.SerieNull).attr("selected","true");
+            .on("change", this.onFilterTypeSelector())
+            .append("option").text(Serie.SerieNull).attr("selected", "true");
         d3.select("#newFilterAddContainer")
             .on("click", this.onFilterAdd());
         d3.select("#menu-item-copy")
-            .on("click", this.onCopyLinks());
-        this.data.columns()
+            .on("click", this.onCopyLinksButton());
+        this.model.data().columns()
             .forEach(c => {
                 d3.select("#newFilterTypeSelector")
                     .append("option").text(c);
             });
-        this.data.columns()
-            .filter(c => Object.keys(Serie.PictureUrls).includes(c))
-            .forEach(c => {
-                d3.select("#displayedSerieSelector")
-                    .append("option").text(c)
-                    .call(function(s) { if(c==_this.dataType) s.attr("selected","true"); });
-            });
-        this.onDataTypeChanged().call(d3.select("#displayedSerieSelector").node());
-        this.onFilterTypeChanged().call(d3.select("#newFilterTypeSelector").node());
+
+        this.onDataTypeChanged().call(this, this.serieSelector.selected());
+        this.onFilterTypeSelector().call(d3.select("#newFilterTypeSelector").node());
         this.updateHtmlResults();
     }
 

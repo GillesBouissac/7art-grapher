@@ -105,7 +105,8 @@ class Serie extends AutoMap {
         imdbId: "IMDb ID",
         tmdbId: "TMDB ID",
         imdbRating: "IMDb rating",
-        tmdbRating: "Rotten Tomatoes rating",
+        tmdbRating: "TMDb vote average",
+        tomatoeRating: "Rotten Tomatoes rating",
         year: "Year",
         runtime: "Runtime",
     };

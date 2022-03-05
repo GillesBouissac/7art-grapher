@@ -8,12 +8,6 @@ html {
     padding-left: 0.5rem;
     display: flex;
 }
-.card-template-title {
-    margin-bottom: -0.1em;
-}
-.card-template-title2 {
-    font-size: 85%;
-}
 
 .cols-responsive>* {
     flex: 0 0 auto;
@@ -168,3 +162,43 @@ body {
 .toast, #select-data-position {
     z-index: 2000;
 }
+
+.card-title {
+    margin-bottom: -0.1em;
+    text-decoration: none;
+    display: block;
+}
+.card-title2 {
+    font-size: 85%;
+}
+.card-title-imdb, .card-title-tmdb, .card-title-tomatoe {
+    background-size: 1.0em;
+    background-position: 0;
+    background-repeat: no-repeat;
+    padding-left: 1.1em;
+}
+.card-title-imdb.rating-low {
+    background-image: url("artifacts/imdb-low.svg");
+}
+.card-title-imdb.rating-medium {
+    background-image: url("artifacts/imdb-medium.svg");
+}
+.card-title-imdb.rating-high {
+    background-image: url("artifacts/imdb-high.svg");
+}
+.card-title-tmdb.rating-low {
+    background-image: url("artifacts/tmdb-low.svg");
+}
+.card-title-tmdb.rating-medium {
+    background-image: url("artifacts/tmdb-medium.svg");
+}
+.card-title-tmdb.rating-high {
+    background-image: url("artifacts/tmdb-high.svg");
+}
+.card-title-tomatoe.rating-low {
+    background-image: url("artifacts/tomatoe-rotten.svg");
+}
+.card-title-tomatoe.rating-high {
+    background-image: url("artifacts/tomatoe-fresh.svg");
+}
+

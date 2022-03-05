@@ -275,17 +275,41 @@ class SearchManager {
         if (detUrl) {
             newCard.selectAll(".cardTemplateUrl").attr("href", detUrl);
         }
-        newCard.selectAll(".card-template-title").text(se.name());
+        newCard
+            .selectAll(".card-title")
+            .attr("title", se.name())
+            .attr("href", detUrl)
+            .text(se.name())
+            ;
         const films = [...se.values()];
         if (films.length == 1 && (films[0] instanceof Film)) {
             const imdbr = films[0].get(Serie.Names.imdbRating)?.values().next().value?.name();
             const tmdbr = films[0].get(Serie.Names.tmdbRating)?.values().next().value?.name();
+            const tomatoe = films[0].get(Serie.Names.tomatoeRating)?.values().next().value?.name();
             const year = films[0].get(Serie.Names.year)?.values().next().value?.name();
-            newCard.selectAll(".card-template-title2")
-                .text(`${year} - ${imdbr} - ${tmdbr}`);
+            newCard.selectAll(".card-title-year")
+                .text(`${year}`)
+                .classed("show", year!=undefined);
+            newCard.selectAll(".card-title-imdb")
+                .text(`${imdbr}`)
+                .classed("rating-low", imdbr<4)
+                .classed("rating-medium", 4<=imdbr && imdbr<7)
+                .classed("rating-high", 7<=imdbr)
+                .classed("show", imdbr!=undefined);
+            newCard.selectAll(".card-title-tmdb")
+                .text(`${tmdbr}`)
+                .classed("rating-low", tmdbr<4)
+                .classed("rating-medium", 4<=tmdbr && tmdbr<7)
+                .classed("rating-high", 7<=tmdbr)
+                .classed("show", tmdbr!=undefined);
+            newCard.selectAll(".card-title-tomatoe")
+                .text(`${tomatoe}`)
+                .classed("rating-low", tomatoe<60)
+                .classed("rating-high", tomatoe>=60)
+                .classed("show", tomatoe!=undefined);
         }
         else {
-            newCard.selectAll(".card-template-title2")
+            newCard.selectAll(".card-title2")
                 .text(`${films.length} Movies`);
         }
         return newCard;
@@ -441,7 +465,7 @@ class SearchManager {
     /**
      * Returns the parameters of the filter parameters ready to activate.
      * 
-     * @returns {FilterParameters|null} Filter data
+     * @returns {Filter|null} Filter data
      */
     getNewFilterHtml() {
         const filteredData = d3.select("#newFilterTypeSelector").property("value");

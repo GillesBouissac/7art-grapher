@@ -31,17 +31,16 @@
                 <div class="container-fluid justify-content-between h4 my-0">
                     <div class="d-flex">
                         <!-- https://www.moviequotes.com/quote/woody-ya-know-youve-handled-this-lost-toy-lif/ -->
-                        <div class="h2 my-0" data-toggle="tooltip" data-placement="top"
+                        <div class="h2 my-0" data-bs-toggle="tooltip"
                             title="Open your eyes, Woody. There's plenty of kids out there. Sometimes change can be good">
                             <a class="nav-link active" id="menu-item-open-left" href="#"><i
                                     class="bi bi-justify text-white"></i></a>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-center align-items-center" style="flex:1 0 auto" data-toggle="tooltip" data-placement="top"
+                    <div class="d-flex justify-content-center align-items-center" style="flex:1 0 auto" data-bs-toggle="tooltip"
                     title="Search your feelings, Lord Vader.">
                         <!-- https://www.quodb.com/search/faces - Fight Club -->
-                        <div class="" data-toggle="tooltip" data-placement="top"
-                            title="Look at my face. I'm a member.">
+                        <div class="" data-bs-toggle="tooltip" title="Look at my face. I'm a member.">
                             <a class="nav-link active" id="menu-item-select-data" href="#"><i
                                     class="bi bi-file-person-fill text-white"></i></a>
                         </div>
@@ -50,7 +49,7 @@
                     </div>
                     <div class="d-flex">
                         <!-- https://www.moviequotes.com/quote/you-know-when-you-make-a-copy-of-a-copy-its-not/ -->
-                        <div class="ms-2" data-toggle="tooltip" data-placement="top"
+                        <div class="ms-2" data-bs-toggle="tooltip"
                             title="You know when you make a copy of a copy, it's not as sharp as the original.">
                             <a class="nav-link active" id="menu-item-copy" href="#"><i
                                     class="bi bi-clipboard-fill text-white"></i></a>
@@ -58,16 +57,14 @@
                     </div>
                 </div>
             </nav>
-            <div>
-                <div class="start-0 end-0 pt-2 overflow-auto">
-                        <div class="container-fluid">
-                            <div class="mb-4 mx-auto">
-                                <div id="cardContainer" class="row cols-responsive gx-3"></div>
-                                <footer class="pt-3 mt-4 text-muted">
-                                    &copy; Serverperso.com 2022
-                                </footer>
-                            </div>
-                        </div>
+            <div class="start-0 end-0 pt-2 overflow-auto">
+                <div class="container-fluid">
+                    <div class="mb-4 mx-auto">
+                        <div id="cardContainer" class="row cols-responsive gx-3"></div>
+                        <footer class="pt-3 mt-4 text-muted">
+                            &copy; Serverperso.com 2022
+                        </footer>
+                    </div>
                 </div>
             </div>
         </div>
@@ -174,7 +171,7 @@
                 <img class="cardTemplateImage shaper-slave-image"></img>
                 <a href="#" class="cardTemplateUrl shaper-slave-overlay text-dark my-mb-auto px-mb-4" target="_blank">
                     <div class="shaper-slave bg-secondary bg-gradient d-grid">
-                        <p class="text-truncate card-template-title">Title</p>
+                        <p class="text-truncate card-title">Title</p>
                         <div class="row mx-mb-auto">
                             <table class="cardTemplateProperties col table-primary"></table>
                         </div>
@@ -182,10 +179,13 @@
                 </a>
             </div>
             <div>
-                <p class="text-center text-truncate card-template-title">Title</p>
+                <a data-bs-toggle="tooltip" title="Title" class="text-center text-white text-truncate card-title" href="#" target="_blank">Title</a>
             </div>
-            <div>
-                <p class="text-center text-truncate card-template-title2 text-secondary mb-1">Title</p>
+            <div class="d-flex flex-nowrap justify-content-center card-title2 text-secondary mb-1">
+                <div data-bs-toggle="tooltip" title="Release year" class="collapse card-title-year text-truncate me-2">Year</div>
+                <div data-bs-toggle="tooltip" title="IMDb rating" class="collapse card-title-imdb me-2">0.0</div>
+                <div data-bs-toggle="tooltip" title="TMDb rating" class="collapse card-title-tmdb me-2">0.0</div>
+                <div data-bs-toggle="tooltip" title="Rotten tomaotoes rating" class="collapse card-title-tomatoe">0.0</div>
             </div>
         </div>
     </div>

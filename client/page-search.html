@@ -19,71 +19,74 @@
 
     <script type="module">
         import { localSearch } from './scripts/search.js';
-        import { Serie } from './scripts/title.js';
-        import * as d3 from "https://cdn.skypack.dev/d3@7";
-
         const search = localSearch();
         search.start();
-
     </script>
 </head>
 
 <body class="bg-dark text-white position-fixed start-0 end-0 top-0 bottom-0">
     <main>
-        <nav id="top-menu" class="navbar navbar-light bg-secondary p-0 position-fixed start-0 end-0" style="--bs-bg-opacity:0.8;" aria-label="Navigation bar">
-            <div class="container-fluid justify-content-between h4 my-0">
-                <div class="d-flex">
-                    <!-- https://www.moviequotes.com/quote/phone-home-pointing-at-the-window-et-home-p/ -->
-                    <div class="" data-toggle="tooltip" data-placement="top" title="E.T. home phone">
-                        <a class="nav-link active" id="menu-item-home" href="./"><i
-                                class="bi bi-house-fill text-white"></i></a>
+        <div class="d-flex flex-column" style="max-height: 100vh;">
+            <nav id="top-menu" class="navbar navbar-light bg-secondary p-0 start-0 end-0" style="--bs-bg-opacity:0.8;" aria-label="Navigation bar">
+                <div class="container-fluid justify-content-between h4 my-0">
+                    <div class="d-flex">
+                        <!-- https://www.moviequotes.com/quote/woody-ya-know-youve-handled-this-lost-toy-lif/ -->
+                        <div class="" data-toggle="tooltip" data-placement="top"
+                            title="Open your eyes, Woody. There's plenty of kids out there. Sometimes change can be good">
+                            <a class="nav-link active" id="menu-item-open-left" href="#"><i
+                                    class="bi bi-justify text-white"></i></a>
+                        </div>
                     </div>
-                    <!-- https://www.moviequotes.com/quote/woody-ya-know-youve-handled-this-lost-toy-lif/ -->
-                    <div class="" data-toggle="tooltip" data-placement="top"
-                        title="Open your eyes, Woody. There's plenty of kids out there. Sometimes change can be good">
-                        <a class="nav-link active" id="menu-item-open-left" href="#"><i
-                                class="bi bi-justify text-white"></i></a>
+                    <div class="d-flex">
+                        <!-- https://www.quodb.com/search/search - Star Wars: Episode V - The Empire Strikes Back (1980) -->
+                        <div data-toggle="tooltip" data-placement="top"
+                            title="Search your feelings, Lord Vader.">
+                            <div class="shadow-none" id="menu-item-toggle-fast-search" type="button">
+                                <span class="nav-link"><i class="bi bi-search text-white"></i></span>
+                            </div>
+                        </div>
+                        <!-- https://www.quodb.com/search/faces - Fight Club -->
+                        <div class="" data-toggle="tooltip" data-placement="top"
+                            title="Look at my face. I'm a member.">
+                            <a class="nav-link active" id="menu-item-select-data" href="#"><i
+                                    class="bi bi-file-person-fill text-white"></i></a>
+                        </div>
+                        <!-- https://www.moviequotes.com/quote/you-know-when-you-make-a-copy-of-a-copy-its-not/ -->
+                        <div class="ms-2" data-toggle="tooltip" data-placement="top"
+                            title="You know when you make a copy of a copy, it's not as sharp as the original.">
+                            <a class="nav-link active" id="menu-item-copy" href="#"><i
+                                    class="bi bi-clipboard-fill text-white"></i></a>
+                        </div>
                     </div>
-                </div>
-                <div class="d-flex">
-                    <!-- https://www.moviequotes.com/quote/you-know-when-you-make-a-copy-of-a-copy-its-not/ -->
-                    <div class="ms-2" data-toggle="tooltip" data-placement="top"
-                        title="You know when you make a copy of a copy, it's not as sharp as the original.">
-                        <a class="nav-link active" id="menu-item-copy" href="#"><i
-                                class="bi bi-clipboard-fill text-white"></i></a>
-                    </div>
-                    <!-- https://www.quodb.com/search/faces - Fight Club -->
-                    <div class="" data-toggle="tooltip" data-placement="top"
-                        title="Look at my face. I'm a member.">
-                        <a class="nav-link active" id="menu-item-select-data" href="#"><i
-                                class="bi bi-file-person-fill text-white"></i></a>
-                    </div>
-                    <!-- https://www.quodb.com/search/search - Star Wars: Episode V - The Empire Strikes Back (1980) -->
-                    <div data-toggle="tooltip" data-placement="top"
-                        title="Search your feelings, Lord Vader.">
-                        <div class="shadow-none" id="menu-item-toggle-fast-search" type="button">
-                            <span class="nav-link"><i class="bi bi-search text-white"></i></span>
+                    <div class="d-flex">
+                        <div data-toggle="tooltip " data-bs-placement="top"
+                            title="But I hate it in old American movies when drivers don't watch the road.">
+                            <a class="nav-link text-white disabled" id="navItemBrand" href="#">
+                                <img class="mb-1 me-2" src="artifacts/logo-white.svg" style="height: 0.9em">
+                            </a>
                         </div>
                     </div>
                 </div>
-                <div class="d-flex">
-                    <div data-toggle="tooltip " data-bs-placement="top"
-                        title="But I hate it in old American movies when drivers don't watch the road.">
-                        <a class="nav-link text-white disabled" id="navItemBrand" href="#">
-                            <img class="mb-1 me-2" src="artifacts/logo-white.svg" style="height: 0.9em">
-                        </a>
+                <div class="container-fluid h4 my-0 collapse" id="fast-search-tray">
+                    <div class="d-flex w-100 p-1">
+                        <div class="nav justify-content-center flex-fill" data-toggle="tooltip" data-placement="top"
+                            title="Search your feelings, Lord Vader.">
+                            <input class="h-100 fs-6 m-0" id="fast-search-input" type="text" placeholder="Rechercher"></input>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            <div class="start-0 end-0 pt-2 overflow-auto">
+                <div class="container-fluid">
+                    <div class="mb-4 mx-auto">
+                        <div id="cardContainer" class="row cols-responsive gx-3"></div>
+                        <footer class="pt-3 mt-4 text-muted border-top">
+                            &copy; Serverperso.com 2022
+                        </footer>
                     </div>
                 </div>
             </div>
-            <div class="container-fluid h4 my-0 collapse" id="fast-search-tray">
-                <div class="d-flex w-100 p-1">
-                    <div class="nav justify-content-center flex-fill" data-toggle="tooltip" data-placement="top"
-                        title="Search your feelings, Lord Vader.">
-                        <input class="h-100 fs-6 m-0" id="fast-search-input" type="text" placeholder="Rechercher"></input>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        </div>
         <div id="left-tray-handle" draggable="true"></div>
         <div id="left-tray" draggable="true" class="position-fixed bg-primary top-0 pt-5 h-100 overflow-auto"
             style="max-height: 100%; width: var(--left-tray-width); left: calc(-1 * var(--left-tray-width)); transform: none;">
@@ -129,20 +132,6 @@
                     </div>
                     <div class="row mt-4 border-bottom"></div>
                     <div id="activeFilterContainer" class="row"></div>
-                </div>
-            </div>
-        </div>
-        <div class="position-fixed top-0 start-0 end-0 pt-5 overflow-auto" style="max-height: 100%;">
-            <div class="container-fluid">
-                <div class="d-grid gap-3">
-                    <div>
-                        <div class="mb-4 mx-auto">
-                            <div id="cardContainer" class="row row-cols-auto gx-3"></div>
-                            <footer class="pt-3 mt-4 text-muted border-top">
-                                &copy; Serverperso.com 2022
-                            </footer>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

@@ -1,5 +1,5 @@
 import * as d3 from "https://cdn.skypack.dev/d3@7";
-import { Listened } from "./util.js";
+import { Listened } from "./lib/util.js";
 
 export { UiFastSearch };
 

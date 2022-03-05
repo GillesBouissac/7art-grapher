@@ -15,7 +15,7 @@ html {
     font-size: 85%;
 }
 
-.row-cols-auto>* {
+.cols-responsive>* {
     flex: 0 0 auto;
     width: 33.33%
 }
@@ -35,7 +35,7 @@ html {
 }
 
 @media (min-width: 576px) {
-    .row-cols-auto>* {
+    .cols-responsive>* {
         flex: 0 0 auto;
         width: 20.00%
     }
@@ -45,7 +45,7 @@ html {
 }
 
 @media (min-width: 768px) {
-    .row-cols-auto>* {
+    .cols-responsive>* {
         flex: 0 0 auto;
         width: 16.66%
     }
@@ -55,7 +55,7 @@ html {
 }
 
 @media (min-width: 992px) {
-    .row-cols-auto>* {
+    .cols-responsive>* {
         flex: 0 0 auto;
         width: 12.5%
     }
@@ -65,7 +65,7 @@ html {
 }
 
 @media (min-width: 1200px) {
-    .row-cols-auto>* {
+    .cols-responsive>* {
         flex: 0 0 auto;
         width: 10.00%
     }
@@ -75,19 +75,9 @@ html {
 }
 
 @media (min-width: 1500px) {
-    .row-cols-auto>* {
+    .cols-responsive>* {
         flex: 0 0 auto;
         width: 8.33%
-    }
-    #fast-search-input {
-        width: 50%;
-    }
-}
-
-@media (min-width: 1800px) {
-    .row-cols-auto>* {
-        flex: 0 0 auto;
-        width: 6.66%
     }
     #fast-search-input {
         width: 50%;

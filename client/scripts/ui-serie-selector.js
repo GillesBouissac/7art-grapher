@@ -1,6 +1,6 @@
 import * as d3 from "https://cdn.skypack.dev/d3@7";
-import { Listened } from "./util.js";
-import { Serie } from "./title.js";
+import { Listened } from "./lib/util.js";
+import { Serie } from "./lib/title.js";
 
 export { UiSelectData };
 

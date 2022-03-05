@@ -1,11 +1,11 @@
 import * as d3 from "https://cdn.skypack.dev/d3@7";
-import { logDate, withoutDiacritics } from "./util.js";
-import { TitleData, Serie, SerieElement, Film, detailUrl, imageUrl } from "./title.js";
+import { logDate, withoutDiacritics } from "./lib/util.js";
+import { TitleData, Serie, SerieElement, Film, detailUrl, imageUrl } from "./lib/title.js";
 import { UiLeftTray } from "./ui-left-tray.js";
 import { UiFastSearch } from "./ui-fast-search.js";
 import { UiSelectData } from "./ui-serie-selector.js";
-
-import { newSearchModel, Filter, FilterPattern, FilterIntRange } from "./searchModel.js";
+import { Filter, FilterPattern, FilterIntRange } from "./lib/filter.js";
+import { newSearchModel } from "./searchModel.js";
 import params from "./parameters.js";
 
 export { localSearch };
@@ -135,7 +135,7 @@ class SearchManager {
             const filter = new FilterPattern(this.serieSelector.selected(), text);
             this.model.addSerieFilter(filter);
         }
-        this.updateHtmlResults();
+        this.updateHtmlResults(false);
     }
 
     /**
@@ -282,19 +282,42 @@ class SearchManager {
     }
 
     /**
-     * Refreshes the result list.
+     * Apply filter on data
+     * 
+     * @returns {SearchManager} This
      */
-    updateHtmlResults() {
+    updateCache() {
         this.resultCache = this.model.getFilteredData(this.serieSelector.selected());
-        // console.log(`updateHtmlResults with ${this.resultCache.length} elements`);
+        return this;
+    }
+
+    /**
+     * Refreshes the result list.
+     * 
+     * @param {boolean} withCache True to reset the cache from film filters
+     * @returns {SearchManager} This
+     */
+    updateHtmlResults(withCache) {
+        if (withCache==undefined || withCache) {
+            this.updateCache();
+        }
+        const filters = this.model.getSerieFilters();
+        const list = this.resultCache
+            .filter(se => {
+                return filters.every(flt => flt.match(se.name()));
+            })
+            .slice(0, SearchManager.CARDS_PER_PAGE)
+            ;
+
         const _this = this;
         this.cardContainer.selectAll(".cardTemplate")
-            .data(_this.resultCache.slice(0, SearchManager.CARDS_PER_PAGE), se => se.name())
+            .data(list, se => se.name())
             .join(
                 enter => enter
                     .append((se) => _this.newHtmlCard(se).node())
                     .style("display", "block")
             );
+        return this;
     }
 
     /**

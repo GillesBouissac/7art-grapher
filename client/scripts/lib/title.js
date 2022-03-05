@@ -1,5 +1,5 @@
 import { compareAlphanumeric, logDate, AutoMap, absoluteUrl } from "./util.js";
-import params from "./parameters.js";
+import params from "../parameters.js";
 
 export { TitleData, Serie, SerieElement, Film };
 export { imageUrl, detailUrl };

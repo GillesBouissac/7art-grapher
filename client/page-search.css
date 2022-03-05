@@ -86,6 +86,11 @@ html {
 
 #left-tray {
     --left-tray-width: min(100%, 30rem);
+    max-height: 100%;
+    width: var(--left-tray-width);
+    left: calc(-1 * var(--left-tray-width));
+    transform: none;
+    box-shadow: 5px 5px 20px black;
 }
 
 #left-tray-handle {
@@ -151,18 +156,15 @@ body {
     z-index: 0;
 }
 
-#left-tray {
+#top-menu {
     z-index: 1100;
 }
-
-#left-tray-handle {
-    z-index: 1110;
-}
-
-#top-menu {
+#left-tray {
     z-index: 1200;
 }
-
+#left-tray-handle {
+    z-index: 1210;
+}
 .toast, #select-data-position {
     z-index: 2000;
 }

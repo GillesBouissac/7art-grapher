@@ -109,8 +109,7 @@ class UiSelectData extends Listened {
             this.box.classed("show", true);
             const bodyRect = document.body.getBoundingClientRect();
             const commandRect = this.menuToggle.node().getBoundingClientRect();
-            const menuRect = this.list.node().getBoundingClientRect();
-            const x = commandRect.left+commandRect.width/2-menuRect.width/2-bodyRect.left;
+            const x = commandRect.left-bodyRect.left-bodyRect.left;
             const y = commandRect.bottom-bodyRect.top;
             this.box.style("top", `${y}px`).style("left", `${x}px`);
             this.opened = true;

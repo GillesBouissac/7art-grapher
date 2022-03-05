@@ -73,6 +73,31 @@ class SearchManager {
     }
 
     /**
+     * Display the popup showing copy result
+     * 
+     * @param {string} text Popup message
+     * @param {boolean?} error True if this is an error
+     */
+    showCopyResult(text, error) {
+        const err = error==undefined ? false : error;
+        d3.select("#toast-end-copy")
+            .select(".toast-header")
+            .classed("bg-primary", err ? false : true)
+            .classed("bg-danger", err ? true : false)
+            ;
+        d3.select("#toast-end-copy").classed("show", true)
+            .select(".toast-body").text(text);
+
+        const bodyRect = document.body.getBoundingClientRect();
+        const commandRect = d3.select("#menu-item-copy").node().getBoundingClientRect();
+        const popup = d3.select("#toast-end-copy-position");
+        const popupRect = popup.node().getBoundingClientRect();
+        const x = commandRect.right-popupRect.width-bodyRect.left;
+        const y = commandRect.bottom-bodyRect.top;
+        popup.style("top", `${y}px`).style("left", `${x}px`);
+    }
+
+    /**
      * Build a menu-item-copy handler bound to this object
      * 
      * @returns {Function} Callback for event
@@ -81,11 +106,8 @@ class SearchManager {
         const _this = this;
         /**
          * The menu-item-copy button handler
-         * 
-         * @param {d3.event} e event
          */
-        return function (e) {
-            d3.select("#toast-end-copy-position").style("top", `${e.clientY}px`).style("left", `${e.clientX}px`);
+        return function () {
             if (_this.resultCache) {
                 const urls = [];
                 _this.resultCache.forEach(se => {
@@ -97,29 +119,17 @@ class SearchManager {
                     navigator.clipboard
                         .writeText(urls.join("\n"))
                         .then(function () {
-                            d3.select("#toast-end-copy")
-                                .select(".toast-header").classed("bg-primary", true);
-                            d3.select("#toast-end-copy").classed("show", true)
-                                .select(".toast-body").text(`${urls.length} links have been copied in the clipboard`);
+                            _this.showCopyResult(`${urls.length} links have been copied in the clipboard`);
                         }, function (err) {
-                            d3.select("#toast-end-copy")
-                                .select(".toast-header").classed("bg-danger", true);
-                            d3.select("#toast-end-copy").classed("show", true)
-                                .select(".toast-body").text(`Error while copying ${urls.length} links to the clipboard: ${err}`);
+                            _this.showCopyResult(`Error while copying ${urls.length} links to the clipboard: ${err}`, true);
                         });
                 }
                 catch (err) {
-                    d3.select("#toast-end-copy")
-                        .select(".toast-header").classed("bg-danger", true);
-                    d3.select("#toast-end-copy").classed("show", true)
-                        .select(".toast-body").text(`Error while accessing to the clipboard: ${err}`);
+                    _this.showCopyResult(`Error while accessing to the clipboard: ${err}`, true);
                 }
             }
             else {
-                d3.select("#toast-end-copy")
-                    .select(".toast-header").classed("bg-danger", true);
-                d3.select("#toast-end-copy").classed("show", true)
-                    .select(".toast-body").text("No result to copy to clipboard");
+                _this.showCopyResult("No result to copy to clipboard");
             }
         };
     }

@@ -27,21 +27,21 @@
 <body class="bg-dark text-white position-fixed start-0 end-0 top-0 bottom-0">
     <main>
         <div class="d-flex flex-column" style="max-height: 100vh;">
-            <nav id="top-menu" class="navbar navbar-light bg-secondary p-0 start-0 end-0" style="--bs-bg-opacity:0.8;" aria-label="Navigation bar">
+            <nav id="top-menu" class="navbar navbar-light bg-secondary p-1 start-0 end-0" style="--bs-bg-opacity:0.8;" aria-label="Navigation bar">
                 <div class="container-fluid justify-content-between h4 my-0">
                     <div class="d-flex">
                         <!-- https://www.moviequotes.com/quote/woody-ya-know-youve-handled-this-lost-toy-lif/ -->
-                        <div class="h2 my-0" data-bs-toggle="tooltip"
+                        <div class="h3 my-0" data-bs-toggle="tooltip"
                             title="Open your eyes, Woody. There's plenty of kids out there. Sometimes change can be good">
-                            <a class="nav-link active" id="menu-item-open-left" href="#"><i
+                            <a class="nav-link active my-0 pb-0" style="padding-top: 0.10em;" id="menu-item-open-left" href="#"><i
                                     class="bi bi-justify text-white"></i></a>
                         </div>
                     </div>
                     <div class="d-flex justify-content-center align-items-center" style="flex:1 0 auto" data-bs-toggle="tooltip"
                     title="Search your feelings, Lord Vader.">
                         <!-- https://www.quodb.com/search/faces - Fight Club -->
-                        <div class="" data-bs-toggle="tooltip" title="Look at my face. I'm a member.">
-                            <a class="nav-link active" id="menu-item-select-data" href="#"><i
+                        <div class="my-0" data-bs-toggle="tooltip" title="Look at my face. I'm a member.">
+                            <a class="nav-link active my-0 pb-0" style="padding-top: 0.10em;" id="menu-item-select-data" href="#"><i
                                     class="bi bi-file-person-fill text-white"></i></a>
                         </div>
                         <!-- https://www.quodb.com/search/search - Star Wars: Episode V - The Empire Strikes Back (1980) -->
@@ -49,9 +49,9 @@
                     </div>
                     <div class="d-flex">
                         <!-- https://www.moviequotes.com/quote/you-know-when-you-make-a-copy-of-a-copy-its-not/ -->
-                        <div class="ms-2" data-bs-toggle="tooltip"
+                        <div class="my-0" data-bs-toggle="tooltip"
                             title="You know when you make a copy of a copy, it's not as sharp as the original.">
-                            <a class="nav-link active" id="menu-item-copy" href="#"><i
+                            <a class="nav-link active my-0 py-0" id="menu-item-copy" href="#"><i
                                     class="bi bi-clipboard-fill text-white"></i></a>
                         </div>
                     </div>
@@ -166,7 +166,7 @@
             Template for elements in #cardContainer
         -->
         <div class="cardTemplate col py-mb-3 gx-3 gy-2">
-            <div class="shaper-parent">
+            <div class="shaper-parent mb-1">
                 <div class="shaper-controller-portrait alert-dark"></div>
                 <img class="cardTemplateImage shaper-slave-image"></img>
                 <a href="#" class="cardTemplateUrl shaper-slave-overlay text-dark my-mb-auto px-mb-4" target="_blank">
@@ -181,10 +181,13 @@
             <div>
                 <a data-bs-toggle="tooltip" title="Title" class="text-center text-white text-truncate card-title" href="#" target="_blank">Title</a>
             </div>
+            <!-- div>
+                <div data-bs-toggle="tooltip" title="Release year" class="card-title2 card-title-year text-center text-secondary me-2">Year</div>
+            </div -->
             <div class="d-flex flex-nowrap justify-content-center card-title2 text-secondary mb-1">
-                <div data-bs-toggle="tooltip" title="Release year" class="collapse card-title-year text-truncate me-2">Year</div>
-                <div data-bs-toggle="tooltip" title="IMDb rating" class="collapse card-title-imdb me-2">0.0</div>
-                <div data-bs-toggle="tooltip" title="TMDb rating" class="collapse card-title-tmdb me-2">0.0</div>
+                <div data-bs-toggle="tooltip" title="Release year" class="card-title-year text-center text-secondary me-1">Year</div>
+                <div data-bs-toggle="tooltip" title="IMDb rating" class="collapse card-title-imdb me-1">0.0</div>
+                <div data-bs-toggle="tooltip" title="TMDb rating" class="collapse card-title-tmdb me-1">0.0</div>
                 <div data-bs-toggle="tooltip" title="Rotten tomaotoes rating" class="collapse card-title-tomatoe">0.0</div>
             </div>
         </div>

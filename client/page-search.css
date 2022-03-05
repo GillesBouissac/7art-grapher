@@ -15,6 +15,8 @@ html {
 }
 #fast-search-input {
     width: 100%;
+    outline: none;
+    border: none;
 }
 #select-data-position {
     display: flex;
@@ -163,37 +165,40 @@ body {
     z-index: 2000;
 }
 
-.card-title {
-    margin-bottom: -0.1em;
+.card-title, .card-title2 {
+    margin-bottom: 0rem;
     text-decoration: none;
     display: block;
 }
+.card-title {
+    font-size: 80%;
+}
 .card-title2 {
-    font-size: 85%;
+    font-size: 65%;
 }
 .card-title-imdb, .card-title-tmdb, .card-title-tomatoe {
     background-size: 1.0em;
-    background-position: 0;
+    background-position: left 0 top 40%;
     background-repeat: no-repeat;
-    padding-left: 1.1em;
+    padding-left: 1.3em;
 }
 .card-title-imdb.rating-low {
-    background-image: url("artifacts/imdb-low.svg");
+    background-image: url("artifacts/imdb-high.svg");
 }
 .card-title-imdb.rating-medium {
-    background-image: url("artifacts/imdb-medium.svg");
+    background-image: url("artifacts/imdb-high.svg");
 }
 .card-title-imdb.rating-high {
     background-image: url("artifacts/imdb-high.svg");
 }
 .card-title-tmdb.rating-low {
-    background-image: url("artifacts/tmdb-low.svg");
+    background-image: url("artifacts/imdb-high.svg");
 }
 .card-title-tmdb.rating-medium {
-    background-image: url("artifacts/tmdb-medium.svg");
+    background-image: url("artifacts/imdb-high.svg");
 }
 .card-title-tmdb.rating-high {
-    background-image: url("artifacts/tmdb-high.svg");
+    background-image: url("artifacts/imdb-high.svg");
 }
 .card-title-tomatoe.rating-low {
     background-image: url("artifacts/tomatoe-rotten.svg");

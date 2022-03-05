@@ -5,10 +5,8 @@ import { UiLeftTray } from "./ui-left-tray.js";
 import { UiFastSearch } from "./ui-fast-search.js";
 import { UiSelectData } from "./ui-serie-selector.js";
 
-import { newSearchModel, createStringFilter, createIntRangeFilter } from "./searchModel.js";
+import { newSearchModel, Filter, FilterPattern, FilterIntRange } from "./searchModel.js";
 import params from "./parameters.js";
-
-/** @typedef {import("./searchModel.js").FilterParameters } FilterParameters */
 
 export { localSearch };
 
@@ -31,20 +29,29 @@ class SearchManager {
     constructor() {
         /** @type {d3.Selection} */
         this.activeFilterContainer = d3.select("#activeFilterContainer");
+        /** @type {d3.Selection} */
         this.activeFilterTemplate = d3.select("#Templates").select(".activeFilterTemplate");
+        /** @type {d3.Selection} */
         this.cardContainer = d3.select("#cardContainer");
+        /** @type {d3.Selection} */
         this.cardTemplate = d3.select("#Templates").select(".cardTemplate");
         this.resultCache = null;
         this.leftTray = new UiLeftTray();
-        this.fastSearch = new UiFastSearch();
+        this.fastSearch = new UiFastSearch()
+            .setEventThis(this)
+            .on("change", this.onFastSearchChanged)
+            ;
+
         this.serieSelector = new UiSelectData()
-            .on("selected", this.onDataTypeChanged())
+            .setEventThis(this)
+            .on("selected", this.onDataTypeChanged)
             ;
 
         this.model = newSearchModel()
-            .on("deleted", this.onFilterDeleted())
-            .on("created", this.onFilterCreated())
-            .on("restore-end", this.onRestoreEnd())
+            .setEventThis(this)
+            .on("deleted", (key) => this.deleteHtmlActiveFilter(key))
+            .on("created", (key, data) => this.addHtmlActiveFilter(key, data))
+            .on("restore-end", () => this.updateHtmlResults())
             ;
         this.model.restore();
     }
@@ -66,47 +73,11 @@ class SearchManager {
     }
 
     /**
-     * Build a filter deleted handler
-     * 
-     * @returns {Function} Handler
-     */
-    onFilterDeleted() {
-        const _this = this;
-        return function(key) {
-            _this.deleteHtmlActiveFilter(key);
-        };
-    }
-
-    /**
-     * Build a filter created handler
-     * 
-     * @returns {Function} Handler
-     */
-    onFilterCreated() {
-        const _this = this;
-        return function(key, data) {
-            _this.addHtmlActiveFilter(key, data);
-        };
-    }
-
-    /**
-     * Build a filter restore handler
-     * 
-     * @returns {Function} Handler
-     */
-    onRestoreEnd() {
-        const _this = this;
-        return function() {
-            _this.updateHtmlResults();
-        };
-    }
-
-    /**
      * Build a menu-item-copy handler bound to this object
      * 
      * @returns {Function} Callback for event
      */
-    onCopyLinksButton() {
+    buildOnCopyLinksButton() {
         const _this = this;
         /**
          * The menu-item-copy button handler
@@ -129,12 +100,12 @@ class SearchManager {
                             d3.select("#toast-end-copy")
                                 .select(".toast-header").classed("bg-primary", true);
                             d3.select("#toast-end-copy").classed("show", true)
-                                .select(".toast-body").text(`${urls.length} links have been copyied in the clipboard`);
+                                .select(".toast-body").text(`${urls.length} links have been copied in the clipboard`);
                         }, function (err) {
                             d3.select("#toast-end-copy")
                                 .select(".toast-header").classed("bg-danger", true);
                             d3.select("#toast-end-copy").classed("show", true)
-                                .select(".toast-body").text(`Error copying ${urls.length} links to the clipboard: ${err}`);
+                                .select(".toast-body").text(`Error while copying ${urls.length} links to the clipboard: ${err}`);
                         });
                 }
                 catch (err) {
@@ -154,32 +125,25 @@ class SearchManager {
     }
 
     /**
-     * Build a data selection change handler bound to this object
+     * Fast search text change handler
      * 
-     * @returns {Function} Callback for "click" event on DOM Element
+     * @param {string} text Current fast search pattern
      */
-    onDataTypeChanged() {
-        const _this = this;
-        /**
-         * The data selection change handler
-         */
-        return function () {
-            _this.model.save();
-            _this.updateHtmlResults();
-        };
+    onFastSearchChanged(text) {
+        this.model.cleanSerieFilters();
+        if (text && text.length>0) {
+            const filter = new FilterPattern(this.serieSelector.selected(), text);
+            this.model.addSerieFilter(filter);
+        }
+        this.updateHtmlResults();
     }
 
     /**
-     * Build a new filter type selection change handler bound to this object
-     * 
-     * @returns {Function} Callback for "click" event on DOM Element
+     * Data selection change handler
      */
-    onFilterTypeSelector() {
-        const _this = this;
-        /** The filter type selector change handler */
-        return function () {
-            _this.updateHtmlFilterAdd();
-        };
+    onDataTypeChanged() {
+        this.model.save();
+        this.updateHtmlResults();
     }
 
     /**
@@ -187,13 +151,13 @@ class SearchManager {
      * 
      * @returns {Function} Callback for "click" event on DOM Element
      */
-    onFilterAdd() {
+    buildOnFilterAdd() {
         const _this = this;
         /** The filter add button handler */
         return function () {
             const filterData = _this.getNewFilterHtml();
             if (filterData) {
-                const newFilterKey = _this.model.create(filterData);
+                const newFilterKey = _this.model.addFilmFilter(filterData);
                 _this.model.save();
                 _this.addHtmlActiveFilter(newFilterKey, filterData);
                 _this.updateHtmlResults();
@@ -212,7 +176,7 @@ class SearchManager {
         /** The filter delete button handler */
         return function () {
             this._filterData.parentSelection.remove();
-            _this.model.delete(this._filterData.newFilterKey);
+            _this.model.delFilmFilter(this._filterData.newFilterKey);
             _this.model.save();
             _this.updateHtmlResults();
         };
@@ -223,7 +187,7 @@ class SearchManager {
      * 
      * @returns {Function} Callback for "click" event on DOM Element
      */
-    onEnterFilterSearch() {
+    buildOnEnterFilterSearch() {
         const _this = this;
         /**
          * The enter focus handler in search text field.
@@ -241,14 +205,13 @@ class SearchManager {
      * 
      * @returns {Function} Callback for "click" event on DOM Element
      */
-    onLeaveFilterSearch() {
+    buildOnLeaveFilterSearch() {
         /**
          * The leave focus handler from search text field.
          * Closes the dropdown
          */
         return function () {
-            const dropdown = d3.select("#newFilterSearchList");
-            dropdown.classed("show", false);
+            d3.select("#newFilterSearchList").classed("show", false);
         };
     }
 
@@ -257,7 +220,7 @@ class SearchManager {
      * 
      * @returns {Function} Callback for "click" event on DOM Element
      */
-    onSearchTextChanged() {
+    buildOnSearchTextChanged() {
         const _this = this;
         /**
          * The enter focus handler in search text field.
@@ -273,7 +236,7 @@ class SearchManager {
      * 
      * @returns {Function} Callback for "click" event on DOM Element
      */
-    onSearchListElementChoosen() {
+    buildOnSearchListElementChoosen() {
         /**
          * Copy the choosen element to the main text field.
          * 
@@ -323,6 +286,7 @@ class SearchManager {
      */
     updateHtmlResults() {
         this.resultCache = this.model.getFilteredData(this.serieSelector.selected());
+        // console.log(`updateHtmlResults with ${this.resultCache.length} elements`);
         const _this = this;
         this.cardContainer.selectAll(".cardTemplate")
             .data(_this.resultCache.slice(0, SearchManager.CARDS_PER_PAGE), se => se.name())
@@ -350,7 +314,7 @@ class SearchManager {
                     .join("li")
                     .classed("dropdown-item", true)
                     .classed("text-truncate", true)
-                    .on("mousedown.search-page", this.onSearchListElementChoosen())
+                    .on("mousedown.search-page", this.buildOnSearchListElementChoosen())
                     .html(d => {
                         const match = withoutDiacritics(d).match(flt.regex);
                         const s = match[flt.regexStartIdx].length;
@@ -366,9 +330,9 @@ class SearchManager {
      * Builds a new active filter given by its key in the GUI.
      * 
      * @param {number} filterKey Key of the filter to create
-     * @param {FilterParameters} filterData Data of the filter to create
+     * @param {Filter} filter Data of the filter to create
      */
-    addHtmlActiveFilter(filterKey, filterData) {
+    addHtmlActiveFilter(filterKey, filter) {
         const htmlFilter = this.activeFilterTemplate
             .clone(true)
             .attr("filter-key", filterKey)
@@ -381,17 +345,17 @@ class SearchManager {
             parentSelection: htmlFilter,
             newFilterKey: filterKey
         };
-        if (filterData.value) {
+        if (filter instanceof FilterPattern) {
             htmlFilter.select(".activeFilterCriterion")
-                .html(`<strong>${filterData.criterion}</strong> matches`);
+                .html(`<strong>${filter.criterion}</strong> matches`);
             htmlFilter.select(".activeFilterValue")
-                .text(filterData.value);
+                .text(filter.value);
         }
-        else if (filterData.min) {
+        else if (filter instanceof FilterIntRange) {
             htmlFilter.select(".activeFilterCriterion")
-                .html(`<strong>${filterData.criterion}</strong> in range`);
+                .html(`<strong>${filter.criterion}</strong> in range`);
             htmlFilter.select(".activeFilterValue")
-                .text(`[${filterData.min} - ${filterData.max}]`);
+                .text(`[${filter.min} - ${filter.max}]`);
         }
 
         this.activeFilterContainer
@@ -451,11 +415,11 @@ class SearchManager {
         const type = Serie.getType(filteredData);
         switch (type) {
             case Serie.TypeNumber:
-                return createIntRangeFilter(filteredData,
+                return new FilterIntRange(filteredData,
                     d3.select("#newFilterNumberMin").property("value"),
                     d3.select("#newFilterNumberMax").property("value"));
             case Serie.TypeString:
-                return createStringFilter(filteredData,
+                return new FilterPattern(filteredData,
                     d3.select("#newFilterSearchText").property("value"));
             case Serie.TypeNull:
             default:
@@ -468,25 +432,26 @@ class SearchManager {
      * Initializes the GUI to match the received data from server.
      */
     activateDisplay() {
+        const _this = this;
         d3.select("#newFilterSearchText")
-            .on("focus", this.onEnterFilterSearch())
-            .on("focusout", this.onLeaveFilterSearch())
-            .on("keyup", this.onSearchTextChanged());
+            .on("focus", this.buildOnEnterFilterSearch())
+            .on("focusout", this.buildOnLeaveFilterSearch())
+            .on("keyup", this.buildOnSearchTextChanged());
         d3.select("#newFilterTypeSelector")
-            .on("change", this.onFilterTypeSelector())
+            .on("change", () => _this.updateHtmlFilterAdd())
             .append("option").text(Serie.SerieNull).attr("selected", "true");
         d3.select("#newFilterAddContainer")
-            .on("click", this.onFilterAdd());
+            .on("click", this.buildOnFilterAdd());
         d3.select("#menu-item-copy")
-            .on("click", this.onCopyLinksButton());
+            .on("click", this.buildOnCopyLinksButton());
         this.model.data().columns()
             .forEach(c => {
                 d3.select("#newFilterTypeSelector")
                     .append("option").text(c);
             });
 
-        this.onDataTypeChanged().call(this, this.serieSelector.selected());
-        this.onFilterTypeSelector().call(d3.select("#newFilterTypeSelector").node());
+        this.onDataTypeChanged();
+        this.updateHtmlFilterAdd();
         this.updateHtmlResults();
     }
 

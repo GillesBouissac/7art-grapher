@@ -21,20 +21,20 @@ class UiLeftTray {
         this.tray = d3.select("#left-tray");
         this.trayHandle = d3.select("#left-tray-handle");
         this.drag = d3.drag()
-            .on("start.left-tray", this.onDragStart())
-            .on("drag.left-tray", this.onDrag())
-            .on("end.left-tray", this.onDrop());
+            .on("start.left-tray", this.buildOnDragStart())
+            .on("drag.left-tray", this.buildOnDrag())
+            .on("end.left-tray", this.buildOnDrop());
 
         this.menuToggle
-            .on("click.left-tray", this.onToggle());
+            .on("click.left-tray", this.buildOnToggle());
         this.tray
-            .on("click", this.onClick())
+            .on("click", this.buildOnClick())
             .call(this.drag);
         this.trayHandle
-            .on("click", this.onClick())
+            .on("click", this.buildOnClick())
             .call(this.drag);
         this.body
-            .on("click.left-tray", this.onClickBackground());
+            .on("click.left-tray", this.buildOnClickBackground());
     }
 
     /**
@@ -75,7 +75,7 @@ class UiLeftTray {
      * 
      * @returns {Function} Callback for event
      */
-    onClick() {
+    buildOnClick() {
         /**
          * The click on background handler
          * 
@@ -91,7 +91,7 @@ class UiLeftTray {
      * 
      * @returns {Function} Callback for event
      */
-    onClickBackground() {
+    buildOnClickBackground() {
         const _this = this;
         /** The click on background handler */
         return function() {
@@ -104,7 +104,7 @@ class UiLeftTray {
      * 
      * @returns {Function} Callback for event
      */
-    onDragStart() {
+    buildOnDragStart() {
         const _this = this;
         /**
          * The "start drag on left menu handle" handler
@@ -122,7 +122,7 @@ class UiLeftTray {
      * 
      * @returns {Function} Callback for event
      */
-    onDrag() {
+    buildOnDrag() {
         const _this = this;
         /**
          * The "drag on left menu handle" handler
@@ -150,7 +150,7 @@ class UiLeftTray {
      * 
      * @returns {Function} Callback for event
      */
-     onDrop() {
+    buildOnDrop() {
         const _this = this;
         /**
          * The "drop on left menu handle" handler
@@ -170,7 +170,7 @@ class UiLeftTray {
      * 
      * @returns {Function} Callback for event
      */
-     onToggle() {
+    buildOnToggle() {
         const _this = this;
         /**
          * The menu-item-open-left button handler

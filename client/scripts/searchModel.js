@@ -1,11 +1,11 @@
-import { withoutDiacritics, Listeners } from "./util.js";
+import { withoutDiacritics, Listened } from "./util.js";
 import { TitleData, Serie, SerieElement } from "./title.js";
 
-export { createStringFilter };
-export { createIntRangeFilter };
 export { newSearchModel };
 export { SearchModel };
-/** @exports FilterParameters */
+export { Filter };
+export { FilterPattern };
+export { FilterIntRange };
 
 /**
  * Returns a filter manager.
@@ -20,8 +20,8 @@ function newSearchModel() {
  * Note: regex<xxx> fields must have "regex" in their name
  * this is used to filter them out when serialising.
  * 
- * @typedef {object} FilterParameters
  * @property {string} type Filter type, one of Serie.Type<xxx>
+ * @property {string} fingerprint Unique identifier of this filter
  * @property {string} criterion Filter criterion
  * @property {string} value User input value for a text filter
  * @property {number} min Filter min value for a numeric filter
@@ -31,81 +31,108 @@ function newSearchModel() {
  * @property {number} regexMatchIdx Index of the first (matching) group in pattern
  * @property {number} regexEndIdx Index of the third (unmatching) group in pattern
  */
-
-/**
- * String filter builder.
- * 
- * @param {string} criterion The data on which this filter must be applied
- * @param {string} value The user pattern to match
- * @returns {FilterParameters} The new filter
- */
-function createStringFilter(criterion, value) {
-    const findUserGroup = /\(/g;
-    const nbUserGroup = [...value.matchAll(findUserGroup)].length;
-    try {
-        const pattern = new RegExp(`^(.*)(${withoutDiacritics(value)})(.*)$`,"i");
-        return {
-            criterion:      criterion,
-            type:           Serie.TypeString,
-            value:          value,
-            regex:          pattern,
-            regexStartIdx:  1,
-            regexMatchIdx:  2,
-            regexEndIdx:    3+nbUserGroup
-        };
-    } catch (error) {return null;}
+class Filter {
+    constructor(type) {
+        this.type = type;
+    }
+    /**
+     * Check if the filter matches the given value
+     * 
+     * @param {string} value The value to check
+     * @returns {boolean} True if the filter matches
+     */
+    // eslint-disable-next-line no-unused-vars
+    match(value) {
+        return false;
+    }
 }
 
 /**
- * Integer range filter builder.
- * 
- * @param {string} criterion The data on which this filter must be applied
- * @param {string} min The user min value
- * @param {string} max The user max value
- * @returns {FilterParameters} The new filter
+ * Filter for regex pattern
  */
-function createIntRangeFilter(criterion, min, max) {
-    const minv = parseFloat(min);
-    const maxv = parseFloat(max);
-    if ( isNaN(minv) || isNaN(maxv) || maxv<minv) {
-        return null;
+class FilterPattern extends Filter {
+    /**
+     * Constructor
+     * 
+     * @param {string} criterion The data on which this filter must be applied
+     * @param {string} value The user pattern to match
+     */
+    constructor(criterion, value) {
+        super(Serie.TypeString);
+        let nbUserGroup;
+        try {
+            const findUserGroup = /\(/g;
+            nbUserGroup = [...value.matchAll(findUserGroup)].length;
+            this.regex = new RegExp(`^(.*)(${withoutDiacritics(value)})(.*)$`,"i");
+        } catch (error) {
+            nbUserGroup = 0;
+            this.regex = new RegExp("");
+        }
+        this.criterion = criterion;
+        this.fingerprint = `${Serie.TypeString}|${criterion}|${value}`;
+        this.value = value;
+        this.regexStartIdx = 1;
+        this.regexMatchIdx = 2;
+        this.regexEndIdx = 3+nbUserGroup;
     }
-    return {
-        criterion: criterion,
-        type: Serie.TypeNumber,
-        min: minv,
-        max: maxv
-    };
+    /** @inheritdoc */
+    match(value) {
+        return this.regex.test(withoutDiacritics(value));
+    }
+}
+
+/**
+ * Filter for numbers range
+ */
+ class FilterIntRange extends Filter {
+    /**
+     * Constructor
+     * 
+     * @param {string} criterion The data on which this filter must be applied
+     * @param {string} min The user min value
+     * @param {string} max The user max value
+     */
+    constructor(criterion, min, max) {
+        super(Serie.TypeNumber);
+        let minv = parseFloat(min);
+        let maxv = parseFloat(max);
+        minv = isNaN(minv) ? -1000000000.0 : minv;
+        maxv = isNaN(maxv) ? +1000000000.0 : maxv;
+        if (maxv<minv) {
+            maxv = minv;
+        }
+        this.criterion = criterion;
+        this.fingerprint = `${Serie.TypeNumber}|${criterion}|${minv}|${maxv}`;
+        this.min = minv;
+        this.max = maxv;
+    }
+    /** @inheritdoc */
+    match(value) {
+        const fv = parseFloat(value);
+        return isNaN(fv) ? false : (this.min<=fv && fv<=this.max);
+    }
 }
 
 /**
  * Class for filter management.
+ * 
+ * Fired events:
+ *   - "created": function(filterKey, data)
+ *   - "deleted": function(filterKey)
+ *   - "restore-start": function()
+ *   - "restore-end": function()
  */
-class SearchModel {
+class SearchModel extends Listened {
 
     constructor() {
+        super();
+
         /** @type {TitleData} */
         this._data = new TitleData();
-        /** @type {Map<string,FilterParameters>} */
-        this.activeFilters = new Map();
-        /** @type {Listeners} list of listeners */
-        this.listeners = new Listeners(this);
-    }
-
-    /**
-     * Add a listener to an event
-     *   - "created": function(filterKey, data), this: FilterManager
-     *   - "deleted": function(filterKey), this: FilterManager
-     *   - "restore-start": function(), this: FilterManager
-     *   - "restore-end": function(), this: FilterManager
-     * 
-     * @param {string} event Event name
-     * @param {Function} callback Function to call on event
-     * @returns {SearchModel} this
-     */
-    on(event, callback) {
-        this.listeners.getOrCreate(event).add(callback);
-        return this;
+        /** @type {Map<string,Filter>} Filters films based by film series */
+        this.filmFilters = new Map();
+        /** @type {Map<string,Filter>} Filters result series */
+        this.serieFilters = new Map();
     }
 
     /**
@@ -128,10 +155,10 @@ class SearchModel {
      * @returns {SearchModel} this
      */
     reset() {
-        for ( let key of this.activeFilters.keys() ) {
-            this.listeners.fire("deleted", key);
+        for ( let k of this.filmFilters.keys() ) {
+            this.fire("deleted", k);
         }
-        this.activeFilters = new Map();
+        this.filmFilters = new Map();
         return this;
     }
 
@@ -142,10 +169,10 @@ class SearchModel {
      */
     save() {
         let persistentData = {
-            activeFilters: {}
+            filmFilters: {}
         };
-        for ( let key of this.activeFilters.keys() ) {
-            persistentData.activeFilters[key] = this.activeFilters.get(key);
+        for ( let k of this.filmFilters.keys() ) {
+            persistentData.filmFilters[k] = this.filmFilters.get(k);
         }
         const persistentDataStr = JSON.stringify(persistentData, (k,v) => k.includes("regex")?undefined:v);
         localStorage.setItem("filmSearchContext",persistentDataStr);
@@ -160,52 +187,86 @@ class SearchModel {
     restore() {
         this.reset();
         const persistentDataStr = localStorage.getItem("filmSearchContext");
-        this.listeners.fire("restore-start");
+        this.fire("restore-start");
         if (persistentDataStr) {
             try {
                 const persistentData = JSON.parse(persistentDataStr);
-                for ( let key of Object.keys(persistentData.activeFilters) ) {
-                    const f = persistentData.activeFilters[key];
+                for ( let k of Object.keys(persistentData.filmFilters) ) {
+                    const f = persistentData.filmFilters[k];
                     if (f.type==Serie.TypeString) {
-                        this.activeFilters.set(key, createStringFilter(f.criterion,f.value));
+                        this.addFilmFilter(new FilterPattern(f.criterion, f.value));
                     }
                     else if (f.type==Serie.TypeNumber) {
-                        this.activeFilters.set(key, createIntRangeFilter(f.criterion,f.min,f.max));
+                        this.addFilmFilter(new FilterIntRange(f.criterion, f.min, f.max));
                     }
                 }
-                for ( let key of this.activeFilters.keys() ) {
-                    this.listeners.fire();
-                    this.listeners.fire("created", key, this.activeFilters.get(key));
+                for ( let k of this.filmFilters.keys() ) {
+                    this.fire("created", k, this.filmFilters.get(k));
                 }
             } catch (error) {
                 // Ignore filter restore
                 console.error(error);
             }
         }
-        this.listeners.fire("restore-end");
+        this.fire("restore-end");
         return this;
     }
 
     /**
      * Records a new filter
      * 
-     * @param {FilterParameters} params Filter parameters
+     * @param {Filter} filter Filter parameters
      * @returns {string} New filter key
      */
-    create(params) {
-        const newFilterKey = this.activeFilters.size;
-        this.activeFilters.set(newFilterKey, params);
-        return newFilterKey;
+    addFilmFilter(filter) {
+        const k = filter.fingerprint;
+        this.filmFilters.set(k, filter);
+        return k;
     }
 
     /**
-     * Removes a filter
+     * Removes the specified filter
      * 
-     * @param {key} key Filter key to delete
+     * @param {string} k Filter key to delete
      * @returns {SearchModel} this
      */
-    delete(key) {
-        this.activeFilters.delete(key);
+    delFilmFilter(k) {
+        this.filmFilters.delete(k);
+        return this;
+    }
+
+    /**
+     * Records a new filter
+     * 
+     * @param {Filter} filter Filter parameters
+     * @returns {string} New filter key
+     */
+    addSerieFilter(filter) {
+        const k = filter.fingerprint;
+        this.serieFilters.set(k, filter);
+        return k;
+    }
+
+    /**
+     * Removes the specified filter
+     * 
+     * @param {string} k Filter key to delete
+     * @returns {SearchModel} this
+     */
+    delSerieFilter(k) {
+        this.serieFilters.delete(k);
+        return this;
+    }
+
+    /**
+     * Removes all serie filters
+     * 
+     * @returns {SearchModel} this
+     */
+    cleanSerieFilters() {
+        for ( let k of this.serieFilters.keys()) {
+            this.delSerieFilter(k);
+        }
         return this;
     }
 
@@ -216,26 +277,19 @@ class SearchModel {
      * @returns {SerieElement} Matching data
      */
     getFilteredData(serie) {
-        const filters = [...this.activeFilters.values()];
+        const filmFilters = [...this.filmFilters.values()];
+        const serieFilters = [...this.serieFilters.values()];
         let serieElements = [...this._data.series(serie).values()];
         return serieElements.filter(se => {
             const films = [...se.values()];
-            return filters.every(flt =>{
+            return filmFilters.every(flt =>{
                 return films.filter(film => {
-                    const values = [...film.get(flt.criterion).keys()];
-                    return values.filter(v=>{
-                        let match = false;
-                        if (flt.type==Serie.TypeString) {
-                            match = flt.regex.test(withoutDiacritics(v));
-                        }
-                        else if (flt.type==Serie.TypeNumber) {
-                            const fv = parseFloat(v);
-                            match = isNaN(fv) ? false : (flt.min<=fv && fv<=flt.max);
-                        }
-                        return match;
-                    }).length>0;
+                    const values = [...film.get(flt.criterion).values()].map(e => e.name());
+                    return values.filter(v=> flt.match(v)).length>0;
                 }).length>0;
             });
+        }).filter(se => {
+            return serieFilters.every(flt => flt.match(se.name()));
         });
     }
 

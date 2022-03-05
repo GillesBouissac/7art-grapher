@@ -7,6 +7,7 @@ export { absoluteUrl };
 export { withoutDiacritics };
 export { AutoMap };
 export { Listeners };
+export { Listened };
 
 
 const logDate = () => (new Date()).toISOString();
@@ -63,7 +64,6 @@ function compareAlphanumeric(a,b) {
  * Map that allow entries creation and get in one call.
  */
 class AutoMap extends Map {
-
     /**
      * Each list of object must have a name
      * 
@@ -73,6 +73,13 @@ class AutoMap extends Map {
         super();
         this._name = name;
     }
+
+    /**
+     * Name accessor.
+     * 
+     * @returns {string} name of this element
+     */
+    name() {return this._name; }
 
     /**
      * Returns the element at key event if absent before the call
@@ -87,24 +94,73 @@ class AutoMap extends Map {
             this.set(key, mappingFunction(key));
         }
         return this.get(key);
-     }
+    }
 }
 
 /**
  * Map of listeners.
  */
- class Listeners extends AutoMap {
-    constructor(mgr) {
+class Listeners extends AutoMap {
+    constructor() {
         super("Filter events listeners");
-        this.mgr = mgr;
+        this.evthis = this;
+    }
+    setEventThis(evthis) {
+        this.evthis = evthis;
     }
     getOrCreate(event) {
         return super.computeIfAbsent(event, () => new Set());
     }
     fire(event) {
         const args = [...arguments].slice(1);
-        this.getOrCreate(event).forEach(cb => cb.call(this.mgr, ...args));
+        this.getOrCreate(event).forEach(cb => cb.call(this.evthis, ...args));
     }
+}
+
+/**
+ * Base class for listened classes: classes able to fire events
+ */
+class Listened {
+    /**
+     * Constructor
+     */
+    constructor() {
+        /** @type {Listeners} list of listeners */
+        this.listeners = new Listeners();
+    }
+
+    /**
+     * Set this for event handlers
+     * 
+     * @param {object} evthis This for event handlers
+     * @returns {Listened} this
+     */
+    setEventThis(evthis) {
+        this.listeners.setEventThis(evthis);
+        return this;
+    }
+
+    /**
+     * Add a listener to an event
+     * 
+     * @param {string} event Event name
+     * @param {Function} callback Function to call on event
+     * @returns {Listened} this
+     */
+    on(event, callback) {
+        this.listeners.getOrCreate(event).add(callback);
+        return this;
+    }
+
+    /**
+     * Fires an event for all listeners on given event
+     * 
+     * @param {...any} var_args List of arguments, first one must be the event name
+     */
+    fire(...var_args) {
+        this.listeners.fire(...var_args);
+    }
+
 }
 
 class ColorScale extends Function {

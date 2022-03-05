@@ -22,13 +22,6 @@ class SerieElement extends AutoMap {
     }
 
     /**
-     * Name accessor.
-     * 
-     * @returns {string} name of this element
-     */
-    name() {return this._name; }
-
-    /**
      * Film serie average accessor
      * 
      * @param {string} serie Name of the serie
@@ -255,7 +248,7 @@ class TitleData {
                     if (isNaN(te) || te>=0) {
                         const seKey = TitleData.IndexedByFilm.includes(c) ? filmKey : se;
                         serie.getOrCreate(seKey, se).set(filmKey, film);
-                        film.getOrCreate(c, c).set(seKey, serie.get(se));
+                        film.getOrCreate(c, c).set(seKey, serie.get(seKey));
                     }
                 });
             });

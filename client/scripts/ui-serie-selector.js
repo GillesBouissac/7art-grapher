@@ -1,51 +1,47 @@
 import * as d3 from "https://cdn.skypack.dev/d3@7";
-import { Listeners } from "./util.js";
+import { Listened } from "./util.js";
 import { Serie } from "./title.js";
 
 export { UiSelectData };
 
 /**
  * Class to handle the left tray of the page
+ * 
+ * Fired events:
+ *   - "selected": function(serie)
  */
-class UiSelectData {
+class UiSelectData extends Listened {
     static SERIE_DEFAULT = Serie.Names.title;
 
     /**
      * Construtor to set the handlers
      */
     constructor() {
-        this._selected = UiSelectData.SERIE_DEFAULT;
-        this.opened = false;
+        super();
+
+        /** @type {string[]} List of series to choose */
         this._series = null;
+        /** @type {string} Current selected serie */
+        this._selected = UiSelectData.SERIE_DEFAULT;
+        /** @type {boolean} The menu is opened or closed */
+        this.opened = false;
 
         // Needed to guess drag direction
+        /** @type {d3.Selection} */
         this.body = d3.select("body");
+        /** @type {d3.Selection} */
         this.menuToggle = d3.select("#menu-item-select-data");
+        /** @type {d3.Selection} */
         this.box = d3.select("#select-data-position");
+        /** @type {d3.Selection} */
         this.list = d3.select("#select-data-list");
-
+        /** @type {d3.Selection} */
         this.template = d3.select("#Templates").select(".select-data-item-template");
 
         this.menuToggle
-            .on("click.select-data", this.onToggle());
+            .on("click.select-data", this.buildOnToggle());
         this.body
-            .on("click.select-data", this.onClickBackground());
-
-        /** @type {Listeners} list of listeners */
-        this.listeners = new Listeners(this);
-    }
-
-    /**
-     * Add a listener to an event
-     *   - "selected": function(serie), this: UiSelectData
-     * 
-     * @param {string} event Event name
-     * @param {Function} callback Function to call on event
-     * @returns {UiSelectData} this
-     */
-    on(event, callback) {
-        this.listeners.getOrCreate(event).add(callback);
-        return this;
+            .on("click.select-data", this.buildOnClickBackground());
     }
 
     /**
@@ -71,7 +67,7 @@ class UiSelectData {
     selected(serie) {
         if (serie) {
             this._selected = serie;
-            this.listeners.fire("selected", this._selected);
+            this.fire("selected", this._selected);
             return this;
         }
         return this._selected;
@@ -100,19 +96,19 @@ class UiSelectData {
         const _this = this;
         this.opened = false;
         if (this._series) {
-            const bodyRect = document.body.getBoundingClientRect();
-            const commandRect = this.menuToggle.node().getBoundingClientRect();
             this.list.selectAll(".select-data-item-template")
                 .data(this._series)
                 .join(
                     enter => enter
                         .append((serie) => _this.newItem(serie).node())
-                        .on("click", _this.onSelected())
+                        .on("click", _this.buildOnSelected())
                 )
                 .select(".select-data-item-input")
                     .property("checked", d => d==_this._selected)
                 ;
             this.box.classed("show", true);
+            const bodyRect = document.body.getBoundingClientRect();
+            const commandRect = this.menuToggle.node().getBoundingClientRect();
             const menuRect = this.list.node().getBoundingClientRect();
             const x = commandRect.left+commandRect.width/2-menuRect.width/2-bodyRect.left;
             const y = commandRect.bottom-bodyRect.top;
@@ -134,7 +130,7 @@ class UiSelectData {
      * 
      * @returns {Function} Callback for event
      */
-    onClickBackground() {
+    buildOnClickBackground() {
         const _this = this;
         /** The click on background handler */
         return function() {
@@ -147,7 +143,7 @@ class UiSelectData {
      * 
      * @returns {Function} Callback for "click" event on DOM Element
      */
-    onSelected() {
+    buildOnSelected() {
         const _this = this;
         /**
          * The filter type selector change handler
@@ -157,7 +153,7 @@ class UiSelectData {
         return function (e) {
             _this.close();
             _this._selected = d3.select(this).select(".select-data-item-label").text();
-            _this.listeners.fire("selected", _this._selected);
+            _this.fire("selected", _this._selected);
             e.stopPropagation();
         };
     }
@@ -167,7 +163,7 @@ class UiSelectData {
      * 
      * @returns {Function} Callback for event
      */
-    onToggle() {
+    buildOnToggle() {
         const _this = this;
         /**
          * The menu-item-open-left button handler

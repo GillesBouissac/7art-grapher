@@ -310,7 +310,7 @@ class SearchManager {
         }
         else {
             newCard.selectAll(".card-title2")
-                .text(`${films.length} Movies`);
+                .text(`${films.length} movies`);
         }
         return newCard;
     }
@@ -363,7 +363,8 @@ class SearchManager {
         if (flt && flt.type == Serie.TypeString) {
             if (flt.regex) {
                 const serie = this.model.data().series(flt.criterion);
-                const serieVals = [...serie.keys()]
+                const serieVals = [...serie.values()]
+                    .map(se => se.name())
                     .filter(e => flt.regex.test(withoutDiacritics(e)))
                     .slice(0, SearchManager.MAX_SEARCH_RESULT);
                 listParent.selectAll("li")

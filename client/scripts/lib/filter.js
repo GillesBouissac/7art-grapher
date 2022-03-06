@@ -52,7 +52,12 @@ class FilterPattern extends Filter {
         try {
             const findUserGroup = /\(/g;
             nbUserGroup = [...value.matchAll(findUserGroup)].length;
-            this.regex = new RegExp(`^(.*)(${withoutDiacritics(value)})(.*)$`,"i");
+            // The user pattern can start with '^' or end with '$'
+            const globstart = value.startsWith("^") ? "()" : "^(.*)";
+            const globend = value.endsWith("$") ? "()" : "(.*)$";
+            // We don't want withoutDiacritics to remove any '^' which are part of regex patterns
+            const userPattern = withoutDiacritics(value.replace(/[\^]/g, "\uFFFF")).replace(/\uFFFF/g, "^");
+            this.regex = new RegExp(`${globstart}(${userPattern})${globend}`,"i");
         } catch (error) {
             nbUserGroup = 0;
             this.regex = new RegExp("");

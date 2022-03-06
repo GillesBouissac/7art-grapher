@@ -103,7 +103,7 @@ class Serie extends AutoMap {
     static Names = {
         title: "Title",
         imdbId: "IMDb ID",
-        tmdbId: "TMDB ID",
+        tmdbId: "TMDb ID",
         imdbRating: "IMDb rating",
         tmdbRating: "TMDb vote average",
         tomatoeRating: "Rotten Tomatoes rating",
@@ -117,11 +117,17 @@ class Serie extends AutoMap {
      */
     static SortCriteria = {
         "Year": [Serie.SortCriterionKey],
+        "Runtime": [Serie.SortCriterionKey],
         "IMDb rating": [Serie.SortCriterionKey],
         "Rotten Tomatoes rating": [Serie.SortCriterionKey],
         "IMDb ID": [Serie.SortCriterionKey],
-        "TMDB ID": [Serie.SortCriterionKey],
-        "Runtime": [Serie.SortCriterionKey]
+        "TMDb ID": [Serie.SortCriterionKey],
+        "TMDb vote average": [Serie.SortCriterionKey],
+        "TMDb vote count": [Serie.SortCriterionKey],
+        "TMDb popularity": [Serie.SortCriterionKey],
+        "Budget": [Serie.SortCriterionKey],
+        "Revenue": [Serie.SortCriterionKey],
+        "Timestamp": [Serie.SortCriterionKey],
     };
 
     static Types = {
@@ -130,11 +136,16 @@ class Serie extends AutoMap {
         "Runtime": Serie.TypeNumber,
         "IMDb rating": Serie.TypeNumber,
         "Rotten Tomatoes rating": Serie.TypeNumber,
+        "TMDb vote average": Serie.TypeNumber,
+        "TMDb vote count": Serie.TypeNumber,
+        "TMDb popularity": Serie.TypeNumber,
+        "Budget": Serie.TypeNumber,
+        "Revenue": Serie.TypeNumber,
+        "Timestamp": Serie.TypeNumber,
     };
 
     static PictureUrls = {
         "Title": params.filmImageLocation,
-        "Original title": params.filmImageLocation,
         "Directors": params.directorsImageLocation,
         "Writers": params.writersImageLocation,
         "Actors": params.actorsImageLocation,
@@ -143,7 +154,6 @@ class Serie extends AutoMap {
 
     static DetailInformationUrls = {
         "Title": params.filmDetailLocation,
-        "Original title": params.filmDetailLocation,
         "Directors": params.directorsDetailLocation,
         "Writers": params.writersDetailLocation,
         "Actors": params.actorsDetailLocation,

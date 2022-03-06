@@ -183,28 +183,28 @@ body {
     padding-left: 1.3em;
 }
 .card-title-imdb.rating-low {
-    background-image: url("artifacts/imdb-high.svg");
+    background-image: url("artifacts/rating/imdb-high.svg");
 }
 .card-title-imdb.rating-medium {
-    background-image: url("artifacts/imdb-high.svg");
+    background-image: url("artifacts/rating/imdb-high.svg");
 }
 .card-title-imdb.rating-high {
-    background-image: url("artifacts/imdb-high.svg");
+    background-image: url("artifacts/rating/imdb-high.svg");
 }
 .card-title-tmdb.rating-low {
-    background-image: url("artifacts/imdb-high.svg");
+    background-image: url("artifacts/rating/imdb-high.svg");
 }
 .card-title-tmdb.rating-medium {
-    background-image: url("artifacts/imdb-high.svg");
+    background-image: url("artifacts/rating/imdb-high.svg");
 }
 .card-title-tmdb.rating-high {
-    background-image: url("artifacts/imdb-high.svg");
+    background-image: url("artifacts/rating/imdb-high.svg");
 }
 .card-title-tomatoe.rating-low {
-    background-image: url("artifacts/tomatoe-rotten.svg");
+    background-image: url("artifacts/rating/tomatoe-rotten.svg");
 }
 .card-title-tomatoe.rating-high {
-    background-image: url("artifacts/tomatoe-fresh.svg");
+    background-image: url("artifacts/rating/tomatoe-fresh.svg");
 }
 
 .bi {

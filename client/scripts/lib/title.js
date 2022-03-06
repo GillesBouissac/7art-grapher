@@ -1,4 +1,4 @@
-import { compareAlphanumeric, logDate, AutoMap, absoluteUrl } from "./util.js";
+import { compareAlphanumeric, logDate, AutoMap, absoluteUrl, buildEval } from "./util.js";
 import params from "../parameters.js";
 
 export { TitleData, Serie, SerieElement, Film };
@@ -300,8 +300,8 @@ class TitleData {
 function imageUrl(serieName, variables) {
     const imgUrlPattern = Serie.PictureUrls[serieName];
     if (imgUrlPattern) {
-        const resolver = new Function("return `"+imgUrlPattern.replaceAll("${","${this.") +"`;");
-        return absoluteUrl(resolver.call(variables));
+        const evalFun = buildEval(imgUrlPattern, variables);
+        return absoluteUrl(evalFun.call(variables));
     }
     return null;
 }
@@ -316,8 +316,8 @@ function imageUrl(serieName, variables) {
 function detailUrl(serieName, variables) {
     const detailUrlPattern = Serie.DetailInformationUrls[serieName];
     if (detailUrlPattern) {
-        const resolver = new Function("return `"+detailUrlPattern.replaceAll("${","${this.") +"`;");
-        return absoluteUrl(resolver.call(variables));
+        const evalFun = buildEval(detailUrlPattern, variables);
+        return absoluteUrl(evalFun.call(variables));
     }
     return null;
 }

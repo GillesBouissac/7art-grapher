@@ -216,6 +216,8 @@ class SearchModel extends Listened {
             tmdb = films[0].get(Serie.Names.tmdbId)?.values().next().value?.name();
             year = films[0].get(Serie.Names.year)?.values().next().value?.name();
         }
-        return {name:serieElement.name(),imdb:imdb?imdb:tmdb,tmdb:tmdb?tmdb:imdb,year:year};
+        const name = serieElement.name();
+        const names = name.split(/\s+/);
+        return {name:name,names:names,imdb:imdb?imdb:tmdb,tmdb:tmdb?tmdb:imdb,year:year};
     }
 }

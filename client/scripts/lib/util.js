@@ -5,6 +5,7 @@ export { compareAlphanumeric };
 export { colorScale };
 export { absoluteUrl };
 export { withoutDiacritics };
+export { buildEval };
 export { AutoMap };
 export { Listeners };
 export { Listened };
@@ -44,6 +45,21 @@ function absoluteUrl (inputPath) {
         sDir = (sDir + sPath.substring(nStart, nEnd)).replace(new RegExp("(?:\\/+[^\\/]*){0," + ((nUpLn - 1) / 3) + "}$"), "/");
     }
     return location.origin + sDir + sPath.substring(nStart);
+}
+
+/**
+ * Returns a function that evalutate the given
+ *   template code with given variables
+ * 
+ * @param {string} template The teplate script
+ * @param {object} variables List of variables
+ * @returns {Function} The generated function
+ */
+ function buildEval(template, variables) {
+    return new Function(
+        "const {"+Object.keys(variables).join(", ")+"} = this;"+
+        "return `"+template+"`;"
+    );
 }
 
 /**

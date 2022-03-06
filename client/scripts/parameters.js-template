@@ -2,16 +2,23 @@
 // TODO: Rename this file parameters.js and customize it before releasing the GUI
 //
 
+//
+// In this file you can put javascript code between "${" and "}"
+// This code has only access to specified variables
+//
 const parameters = {
 
     databaseLocation: "<my-url>",
 
     // The following URLs can use object parameters available from databaseLocation:
     // - ${name}: object name
+    // - ${names}: name splitted in words
+    //             ex: if name="Kate Beckinsale" then names=["Kate", "Beckinsale"]
     //
-    // examples:
+    // Examples:
     //     directorsImageLocation = "http://myserver.com/directors?name=${name}"
     //     writersImageLocation = "./writers?name=${name}"
+    //     actorsDetailLocation = "https://www.google.fr/search?q=portraitist+actor+\"${names.join('\"+\"')}\"&sclient=img&tbm=isch"
     //
     directorsImageLocation: "<my-url>",
     directorsDetailLocation: "<my-url>",

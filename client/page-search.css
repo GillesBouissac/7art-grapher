@@ -177,7 +177,7 @@ body {
     font-size: 65%;
 }
 .card-title-imdb, .card-title-tmdb, .card-title-tomatoe {
-    background-size: 1.0em;
+    background-size: 1em;
     background-position: left 0 top 40%;
     background-repeat: no-repeat;
     padding-left: 1.3em;
@@ -207,3 +207,22 @@ body {
     background-image: url("artifacts/tomatoe-fresh.svg");
 }
 
+.bi {
+    background-repeat: no-repeat;
+    padding-left: 1em;
+    background-size: contain;
+    margin: 0;
+}
+
+.bi-file-person-fill {
+    background-image: url(./artifacts/bi/file-person-fill.svg);
+}
+
+.bi-clipboard-fill {
+    background-image: url(./artifacts/bi/clipboard-fill.svg);
+    margin-bottom: 0.1rem;
+}
+
+.bi-justify {
+    background-image: url(./artifacts/bi/justify.svg);
+}

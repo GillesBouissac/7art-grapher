@@ -1,9 +1,10 @@
+// @ts-check
 
 import * as d3 from "https://cdn.skypack.dev/d3@7";
-import { colorScale, logDate } from "./util.js";
-import { Tooltip } from "./tooltip.js";
-import { TitleData, Serie } from "./title.js";
-import { rangeSelectorXY } from "./range-selector.js";
+import { colorScale, logDate } from "./lib/util.js";
+import { Tooltip } from "./lib/tooltip.js";
+import { TitleData, Serie } from "./lib/title.js";
+import { rangeSelectorXY } from "./lib/range-selector.js";
 import params from "./parameters.js";
 
 export { plotHeatmap };

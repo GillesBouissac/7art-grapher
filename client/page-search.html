@@ -26,37 +26,58 @@
 <body class="bg-dark text-white position-fixed start-0 end-0 top-0 bottom-0">
     <main>
         <div class="d-flex flex-column" style="max-height: 100vh;">
+            <!--
+                Title bar
+            -->
             <nav id="top-menu" class="navbar navbar-light bg-secondary p-1 start-0 end-0" style="--bs-bg-opacity:0.8;" aria-label="Navigation bar">
-                <div class="container-fluid justify-content-between h4 my-0">
+                <div class="container-fluid flex-nowrap justify-content-between h3 my-1">
                     <div class="d-flex">
                         <!-- https://www.moviequotes.com/quote/woody-ya-know-youve-handled-this-lost-toy-lif/ -->
-                        <div class="nav-link my-0 px-1" data-bs-toggle="tooltip"
+                        <div class="nav-link" data-bs-toggle="tooltip"
                             title="Open your eyes, Woody. There's plenty of kids out there. Sometimes change can be good">
                             <div class="bi bi-justify active" id="menu-item-open-left">&nbsp;</div>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-center align-items-stretch" style="flex:1 0 auto" data-bs-toggle="tooltip"
-                    title="Search your feelings, Lord Vader.">
+                    <div class="d-flex align-items-center justify-content-center" style="flex:1 0 auto">
                         <!-- https://www.quodb.com/search/faces - Fight Club -->
-                        <div class="nav-link my-0 px-1" data-bs-toggle="tooltip" title="Look at my face. I'm a member.">
+                        <div class="nav-link" data-bs-toggle="tooltip"
+                            title="Look at my face. I'm a member.">
                             <div class="bi bi-file-person-fill active" id="menu-item-select-data">&nbsp;</div>
                         </div>
+                        <!-- https://www.quodb.com/search/switch -  -->
+                        <div class="nav-link" data-bs-toggle="tooltip"
+                            title="TBD">
+                            <div class="bi bi-funnel-fill active" id="menu-item-fast-search-scope">&nbsp;</div>
+                        </div>
                         <!-- https://www.quodb.com/search/search - Star Wars: Episode V - The Empire Strikes Back (1980) -->
-                        <input class="fs-6 my-1" id="fast-search-input" type="text" placeholder="Rechercher"></input>
+                        <input class="fs-6 px-1" id="fast-search-input" type="text" placeholder="Rechercher"
+                            data-bs-toggle="tooltip" title="Search your feelings, Lord Vader."></input>
                     </div>
                     <div class="d-flex">
+                        <!-- https://www.quodb.com/search/switch - Star Wars: Episode III - Revenge of the Sith (2005) -->
+                        <div class="nav-link" data-bs-toggle="tooltip"
+                            title="R2, switch on the comlink. R2, can you hear me?">
+                            <div class="bi bi-list-task active" id="menu-item-switch-view">&nbsp;</div>
+                        </div>
                         <!-- https://www.moviequotes.com/quote/you-know-when-you-make-a-copy-of-a-copy-its-not/ -->
-                        <div class="nav-link my-0 px-1" data-bs-toggle="tooltip"
+                        <div class="nav-link" data-bs-toggle="tooltip"
                             title="You know when you make a copy of a copy, it's not as sharp as the original.">
                             <div class="bi bi-clipboard-fill" id="menu-item-copy">&nbsp;</div>
                         </div>
                     </div>
                 </div>
             </nav>
+            <!--
+                Content section
+            -->
             <div class="start-0 end-0 pt-2 overflow-auto">
                 <div class="container-fluid">
                     <div class="mb-4 mx-auto">
-                        <div id="cardContainer" class="row cols-responsive gx-3"></div>
+                        <!-- Content cards in grid layout -->
+                        <div id="card-grid-container" class="row collapse cols-grid-responsive gx-3"></div>
+                        <!-- Content cards in list layout -->
+                        <div id="card-list-container" class="row collapse cols-list-responsive gx-3"></div>
+                        <!-- Copyright footer -->
                         <footer class="pt-3 mt-4 text-muted">
                             &copy; Serverperso.com 2022
                         </footer>
@@ -64,6 +85,9 @@
                 </div>
             </div>
         </div>
+        <!--
+            Left menu tray
+        -->
         <div id="left-tray-handle" draggable="true"></div>
         <div class="position-fixed bg-primary top-0 pt-5 h-100 overflow-auto" id="left-tray" draggable="true">
             <div class="container-fluid">
@@ -139,8 +163,8 @@
         -->
         <li class="select-data-item-template list-group-item list-group-item-action">
             <div class="d-flex">
-                <label class="select-data-item-label form-check-label col mx-2" for="">Test1</label>
-                <input class="select-data-item-input form-check-input col-auto mx-2" name="test" type="radio" id="">
+                <label class="select-data-item-label form-check-label col mx-2" for="-template-"></label>
+                <input class="select-data-item-input form-check-input col-auto mx-2" name="test" type="radio" id="-template-">
             </div>
         </li>
         <!--
@@ -159,30 +183,78 @@
             </div>
         </div>
         <!--
-            Template for elements in #cardContainer
+            Template for elements in #card-container in grid mode
         -->
-        <div class="cardTemplate col py-mb-3 gx-3 gy-2">
+        <div class="card-grid-template col py-mb-3 gx-3 gy-2">
             <div class="shaper-parent mb-1">
                 <div class="shaper-controller-portrait alert-dark"></div>
-                <img class="cardTemplateImage shaper-slave-image"></img>
-                <a href="#" class="cardTemplateUrl shaper-slave-overlay text-dark my-mb-auto px-mb-4" target="_blank">
-                    <div class="shaper-slave bg-secondary bg-gradient d-grid">
-                        <p class="text-truncate card-title">Title</p>
-                        <div class="row mx-mb-auto">
-                            <table class="cardTemplateProperties col table-primary"></table>
-                        </div>
-                    </div>
-                </a>
+                <img class="card-template-image shaper-slave-image"></img>
+                <a href="#" class="card-template-url shaper-slave-overlay text-dark my-mb-auto px-mb-4" target="_blank"></a>
             </div>
             <div>
-                <a data-bs-toggle="tooltip" title="Title" class="text-center text-white text-truncate card-title" href="#" target="_blank">Title</a>
+                <a data-bs-toggle="tooltip" title="Title" class="text-center text-white text-truncate card-title" card-field="Title" href="#" target="_blank"></a>
             </div>
-            <div class="d-flex flex-nowrap justify-content-center card-title2 mb-1">
+            <div class="d-flex flex-nowrap justify-content-center align-items-center card-title2 mb-1">
                 <div data-bs-toggle="tooltip" title="Release year" class="card-title-year text-center me-1">Year</div>
-                <div data-bs-toggle="tooltip" title="IMDb rating" class="collapse card-title-imdb me-1">0.0</div>
-                <div data-bs-toggle="tooltip" title="TMDb rating" class="collapse card-title-tmdb me-1">0.0</div>
-                <div data-bs-toggle="tooltip" title="Rotten tomaotoes rating" class="collapse card-title-tomatoe">0.0</div>
+                <div data-bs-toggle="tooltip" title="IMDb rating" class="collapse card-title-imdbr me-1">0.0</div>
+                <div data-bs-toggle="tooltip" title="TMDb rating" class="collapse card-title-tmdbr me-1">0.0</div>
+                <div data-bs-toggle="tooltip" title="Rotten tomaotoes rating" class="collapse card-title-tomatoer">0.0</div>
             </div>
+        </div>
+        <!--
+            Template for elements in #card-container in list mode
+        -->
+        <div class="card-list-template py-mb-3 g-3 fs-3">
+            <div class="d-flex flex-column shadow-lg">
+                <div class="d-flex align-items-stretch">
+                    <div class="shaper-parent" style="flex:0 0 20%;">
+                        <div class="shaper-controller-portrait alert-dark"></div>
+                        <img class="card-template-image shaper-slave-image"></img>
+                        <a href="#" class="card-list-template-url shaper-slave-overlay text-dark px-mb-4" target="_blank"></a>
+                    </div>
+                    <div class="bg-primary px-2" style="flex:0 0 80%;">
+                        <div>
+                            <a class="text-white card-title" data-bs-toggle="tooltip" title="Title" card-field="Title" href="#" target="_blank"></a>
+                        </div>
+                        <div class="d-flex justify-content-left align-items-center card-title2 mb-1">
+                            <div data-bs-toggle="tooltip" title="Release year" class="card-title-year text-center me-1">Year</div>
+                            <div data-bs-toggle="tooltip" title="IMDb rating" class="collapse card-title-imdbr me-1">0.0</div>
+                            <div data-bs-toggle="tooltip" title="TMDb rating" class="collapse card-title-tmdbr me-1">0.0</div>
+                            <div data-bs-toggle="tooltip" title="Rotten tomaotoes rating" class="collapse card-title-tomatoer">0.0</div>
+                        </div>
+                        <div>
+                            <dl class="row card-detail-list card-detail-list-titles gx-1 my-0">
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex flex-column bg-secondary card-detail-list-container gx-0 px-0 mx-0">
+                    <div class="d-flex gx-1 px-1 mx-0 overflow-hidden" style="flex:0 1 auto;">
+                        <dl class="row card-detail-list card-detail-list-items gx-1 my-1">
+                        </dl>
+                    </div>
+                    <div class="d-flex justify-content-center">
+                        <div class="down-arrow-container collapse show">
+                            <div class="down-arrow"></div>
+                        </div>
+                    </div>
+                    <a href="#" class="card-detail-list-overlay shaper-slave-overlay" target="_blank"></a>
+                </div>
+            </div>
+        </div>
+        <!--
+            Template for elements in .card-detail-list-titles
+        -->
+        <div class="card-detail-list-titles-template d-flex">
+            <dt class="" style="width: 30%;"></dt>
+            <dd class="mb-0" style="width: 70%;"></dd>
+        </div>
+        <!--
+            Template for elements in .card-detail-list-items
+        -->
+        <div class="card-detail-list-items-template d-flex mb-3">
+            <dt class="" style="width: 20%;"></dt>
+            <dd class="mb-0" style="width: 80%;"></dd>
         </div>
     </div>
 </body>

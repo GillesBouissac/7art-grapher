@@ -8,21 +8,29 @@ export { FilterIntRange };
 /**
  * Note: regex<xxx> fields must have "regex" in their name
  * this is used to filter them out when serialising.
- * 
- * @property {string} type Filter type, one of Serie.Type<xxx>
- * @property {string} fingerprint Unique identifier of this filter
- * @property {string} criterion Filter criterion
- * @property {string} value User input value for a text filter
- * @property {number} min Filter min value for a numeric filter
- * @property {number} max Filter max value for a numeric filter
- * @property {RegExp} regex Pattern for a text filter
- * @property {number} regexStartIdx Index of the first (unmatching) group in pattern
- * @property {number} regexMatchIdx Index of the first (matching) group in pattern
- * @property {number} regexEndIdx Index of the third (unmatching) group in pattern
  */
 class Filter {
     constructor(type) {
+        /** @type {string} Filter type, one of Serie.Type<xxx> */
         this.type = type;
+        /** @type {string} Filter criterion */
+        this.criterion = undefined;
+        /** @type {RegExp} Pattern for a text filter */
+        this.regex = undefined;
+        /** @type {number} Index of the first (unmatching) group in pattern */
+        this.regexStartIdx = 0;
+        /** @type {number} Index of the first (matching) group in pattern */
+        this.regexMatchIdx = 0;
+        /** @type {number} Index of the third (unmatching) group in pattern */
+        this.regexEndIdx = 0;
+        /** @type {string} Unique identifier of this filter */
+        this.fingerprint = 0;
+        /** @type {string} User input value for a text filter */
+        this.value = 0;
+        /** @type {number} Filter min value for a numeric filter */
+        this.min = 0;
+        /** @type {number} Filter max value for a numeric filter */
+        this.max = 0;
     }
     /**
      * Check if the filter matches the given value

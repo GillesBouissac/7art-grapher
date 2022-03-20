@@ -1,5 +1,6 @@
-import { compareAlphanumeric, logDate, AutoMap, absoluteUrl, buildEval } from "./util.js";
-import params from "../parameters.js";
+// @ts-check
+import { compareAlphanumeric, logDate, AutoMap, absoluteUrl, buildEval, maxDecimal, convertUnit } from "./util.js";
+import parameters from "../parameters.js";
 
 export { TitleData, Serie, SerieElement, Film };
 export { imageUrl, detailUrl };
@@ -15,42 +16,78 @@ class SerieElement extends AutoMap {
 
     constructor(name) {
         super(name);
-        this._averages = {};
+        this._summary = {};
     }
     getOrCreate(key, name) {
         return super.computeIfAbsent(key, () => new Film(name));
     }
 
     /**
-     * Film serie average accessor
+     * Film serie summary accessor
+     * - For number values this is the average
+     * - For string values this is a concatenation with "," as separator
      * 
      * @param {string} serie Name of the serie
-     * @returns {number} The computed average
+     * @returns {string} The computed average
      */
-    average(serie) {
-        if (!Object.prototype.hasOwnProperty.call(this._averages,serie)) {
-            this._averages[serie] = 0;
-            if (this.size>0) {
+    summary(serie) {
+        if (!Object.prototype.hasOwnProperty.call(this._summary,serie)) {
+            if (serie==Serie.SortCriterionKey) {
+                this._summary[serie] = this.name();
+            }
+            else if (serie==Serie.SortCriterionCount) {
+                this._summary[serie] = ""+this.size;
+            }
+            else {
                 const vals=[];
                 this.forEach(film => {
-                    vals.push(...Array.from(film.get(serie).keys()));
+                    if (film.get(serie)==undefined) {
+                        console.error(`Error, serie '${serie}' is missing in data for '${film.name()}' `);
+                    }
+                    else {
+                        [...film.get(serie).values()].forEach( v =>
+                            vals.push(v.name())
+                        );
+                    }
                 });
-                if ( vals.length==1 ) {
-                    // returns the value (could be a string, no average)
-                    let v = parseFloat(vals[0]);
-                    this._averages[serie] = isNaN(v) ? vals[0] : v;
+                if (vals.length==0) {
+                    this._summary[serie] = "-";
                 }
                 else {
-                    const sum = vals.reduce(function (p,c){
-                        let v = parseFloat(c);
-                        v = isNaN(v) ? 0 : v;
-                        return p+v;
-                    },0);
-                    this._averages[serie] = (sum/vals.length).toFixed(3);
+                    if ( parameters.series[serie] && parameters.series[serie].type==Serie.TypeString) {
+                        const unique = vals.filter(function(item, pos) {
+                            return vals.indexOf(item) == pos;
+                        });
+                        this._summary[serie] = unique.join(", ");
+                    }
+                    else if ( parameters.series[serie] && parameters.series[serie].type==Serie.TypeTimeStamp) {
+                        const unique = vals.filter(function(item, pos) {
+                            return vals.indexOf(item) == pos;
+                        }).map(t => new Date(t*1000).toDateString());
+                        this._summary[serie] = unique.join(", ");
+                    }
+                    else {
+                        this._summary[serie] = 0;
+                        const sum = vals.reduce(function (p,c){
+                            let v = parseFloat(c);
+                            v = isNaN(v) ? 0 : v;
+                            return p+v;
+                        },0);
+                        this._summary[serie] = ""+maxDecimal(sum/vals.length,3);
+                    }
                 }
             }
         }
-        return this._averages[serie];
+        return this._summary[serie];
+    }
+
+    /**
+     * Return the list of keys in summarized series
+     * 
+     * @returns {string[]} list of keys
+     */
+    getSummarizedSeries() {
+        return Object.getOwnPropertyNames(this._summary);
     }
 
     /**
@@ -78,13 +115,13 @@ class SerieElement extends AutoMap {
      * 
      * @param {string} serie The serie to compare
      * @param {SerieElement} b The element to compare to this
-     * @returns {number} -1(a<b)/0(a==b)/+1(a>b)
+     * @returns {number} -1(a<b)/0(a==b)/+1(a>b) 
      */
      compareBySerie(serie,b) {
         if ( serie==Serie.SortCriterionNone ) return 0;
         if ( serie==Serie.SortCriterionKey ) return this.compareByName(b);
         if ( serie==Serie.SortCriterionCount ) return this.compareByCount(b);
-        return compareAlphanumeric(this.average(serie),b.average(serie));
+        return compareAlphanumeric(this.summary(serie), b.summary(serie));
     }
 }
 
@@ -95,8 +132,9 @@ class Serie extends AutoMap {
     static SerieNull = "---";
     static TypeNumber = "number";
     static TypeString = "string";
+    static TypeTimeStamp = "timestamp";
     static TypeNull = "null";
-    static SortCriterionKey = "Etiquette";
+    static SortCriterionKey = "Nom";
     static SortCriterionCount = "Nombre de films";
     static SortCriterionNone = Serie.SerieNull;
 
@@ -130,38 +168,68 @@ class Serie extends AutoMap {
         "Timestamp": [Serie.SortCriterionKey],
     };
 
-    static Types = {
-        "---": Serie.TypeNull,
-        "Year": Serie.TypeNumber,
-        "Runtime": Serie.TypeNumber,
-        "IMDb rating": Serie.TypeNumber,
-        "Rotten Tomatoes rating": Serie.TypeNumber,
-        "TMDb vote average": Serie.TypeNumber,
-        "TMDb vote count": Serie.TypeNumber,
-        "TMDb popularity": Serie.TypeNumber,
-        "Budget": Serie.TypeNumber,
-        "Revenue": Serie.TypeNumber,
-        "Timestamp": Serie.TypeNumber,
-    };
-
-    static PictureUrls = {
-        "Title": params.filmImageLocation,
-        "Directors": params.directorsImageLocation,
-        "Writers": params.writersImageLocation,
-        "Actors": params.actorsImageLocation,
-        "Producers": params.producersImageLocation
-    };
-
-    static DetailInformationUrls = {
-        "Title": params.filmDetailLocation,
-        "Directors": params.directorsDetailLocation,
-        "Writers": params.writersDetailLocation,
-        "Actors": params.actorsDetailLocation,
-        "Producers": params.producersDetailLocation
-    };
-
     static getType(serie) {
-        return Serie.Types[serie] ? Serie.Types[serie] : Serie.TypeString;
+        if (serie=="---") return Serie.TypeNull;
+        if (!Object.hasOwnProperty(serie)) return Serie.TypeString;
+        return parameters.series[serie].type;
+    };
+    static getSeriesWithPicture() {
+        return Object.getOwnPropertyNames(parameters.series).filter(k => {
+            return parameters.series[k].imageUrl != undefined;
+        });
+    }
+    static getPictureUrl(serie) {
+        if (!parameters.series.hasOwnProperty(serie)) return undefined;
+        return parameters[parameters.series[serie].imageUrl];
+    };
+    static getDetailInformationUrl(serie) {
+        if (!parameters.series.hasOwnProperty(serie)) return undefined;
+        return parameters[parameters.series[serie].detailUrl];
+    };
+    /**
+     * @typedef {Object} LayoutList
+     * @property {any[][]} outline [key, values, unit] pairs that are to be displayed in title part
+     * @property {any[][]} detail [key, values, unit] pairs that are to be displayed in detail part
+     */
+    /**
+     * Returns the list layout items for the given serie with titles from configuration
+     *   and values fetched from dataset
+     * 
+     * @param {SerieElement} serieElement The serie to check
+     * @returns {LayoutList} The completed layout or null
+     */
+    getSerielistLayout(serieElement) {
+        const serieParams = parameters.series[this._name];
+        if (!serieParams || !serieParams.listLayout) return null;
+        const layoutParams = parameters[serieParams.listLayout];
+        if (!layoutParams) {
+            console.error(`Layout '${serieParams.listLayout}' used in serie '${this._name}' parameters is not defined`);
+            return null;
+        }
+        const result = {outline:[], detail:[]};
+        if (layoutParams.outline) layoutParams.outline.forEach( sr => {
+            const su = sr.split("|");
+            const v = convertUnit(serieElement.summary(su[0]), "", su[1]);
+            result.outline.push([ su[0], v ]);
+        });
+        if (layoutParams.detail) layoutParams.detail.forEach( sr => {
+            const su = sr.split("|");
+            const v = convertUnit(serieElement.summary(su[0]), "", su[1]);
+            result.detail.push([ su[0], v ]);
+        });
+        return result;
+    }
+    /**
+     * Return true if 2 identical values in a serie relates to 2 differents objects
+     * false if 2 identical values are in fact the same object and can be merged
+     * 
+     * @param {string} serie The serie to check
+     * @returns {boolean} The check result
+     */
+    static canHaveDuplicates(serie) {
+        if (!parameters.series.hasOwnProperty(serie)) return false;
+        if (!parameters.series[serie].allowDuplicates) return false;
+        return parameters.series[serie].allowDuplicates;
     }
 
     constructor(name) {
@@ -218,14 +286,6 @@ class Serie extends AutoMap {
  */
 class TitleData {
 
-    /**
-     * List of serie for which the elements are indexed with film key
-     * They are unique by film and year, never merged between films
-     */
-    static IndexedByFilm = [
-        "Title", "Original title", "Outline", "Plot",
-    ];
-
     constructor() {
         this._series = new AllSeries();
         this._films = new SerieElement();
@@ -257,7 +317,7 @@ class TitleData {
                     const se = ""+e;
                     const te = parseInt(se, 10);
                     if (isNaN(te) || te>=0) {
-                        const seKey = TitleData.IndexedByFilm.includes(c) ? filmKey : se;
+                        const seKey = Serie.canHaveDuplicates(c) ? filmKey : se;
                         serie.getOrCreate(seKey, se).set(filmKey, film);
                         film.getOrCreate(c, c).set(seKey, serie.get(seKey));
                     }
@@ -265,6 +325,23 @@ class TitleData {
             });
         });
         console.log(`${logDate()} Data parsed`);
+        // Forces summaries computation on displayable lists
+/*
+        const pseries = Object.getOwnPropertyNames(parameters.series)
+            .filter(k => parameters.series[k].listLayout!=undefined);
+        this._series.forEach ( s1 => {
+            if (pseries.includes(s1.name())) {
+                s1.forEach ( se => {
+                    se.summary(Serie.SortCriterionKey);
+                    se.summary(Serie.SortCriterionCount);
+                    this._columns.forEach ( s2 => {
+                        se.summary(s2);
+                    });
+                });
+            }
+        });
+        console.log(`${logDate()} Data summerised`);
+*/
     }
 
     /**
@@ -298,7 +375,7 @@ class TitleData {
  * @returns {string} The URL
  */
 function imageUrl(serieName, variables) {
-    const imgUrlPattern = Serie.PictureUrls[serieName];
+    const imgUrlPattern = Serie.getPictureUrl(serieName);
     if (imgUrlPattern) {
         const evalFun = buildEval(imgUrlPattern, variables);
         return absoluteUrl(evalFun.call(variables));
@@ -314,7 +391,7 @@ function imageUrl(serieName, variables) {
  * @returns {string} The URL
  */
 function detailUrl(serieName, variables) {
-    const detailUrlPattern = Serie.DetailInformationUrls[serieName];
+    const detailUrlPattern = Serie.getDetailInformationUrl(serieName);
     if (detailUrlPattern) {
         const evalFun = buildEval(detailUrlPattern, variables);
         return absoluteUrl(evalFun.call(variables));

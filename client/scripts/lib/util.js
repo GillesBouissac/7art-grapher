@@ -1,3 +1,4 @@
+// @ts-check
 import * as d3 from "https://cdn.skypack.dev/d3@7";
 
 export { logDate };
@@ -6,6 +7,8 @@ export { colorScale };
 export { absoluteUrl };
 export { withoutDiacritics };
 export { buildEval };
+export { maxDecimal };
+export { convertUnit };
 export { AutoMap };
 export { Listeners };
 export { Listened };
@@ -22,6 +25,51 @@ const colorScale = () => (new ColorScale());
  */
 function withoutDiacritics(str) {
     return str.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+}
+
+/**
+ * Truncates the decimal part of a number like toFixed()
+ * But don't add decimal part if the input is integer
+ */
+function maxDecimal (value, maxDigits) {
+    if (Math.round(value) !== value) {
+        return value.toFixed(maxDigits);
+    }
+    return value;
+}
+
+const UnitMultiplicators = {
+    G: 1000000000,
+    M: 1000000,
+    k: 1000,
+    h: 100,
+    da: 10,
+    d: 0.1,
+    c: 0.01,
+    m: 0.001,
+    µ: 0.000001,
+    n: 0.000000001
+};
+
+/**
+ * Convert a number from a unit to another
+ * List of units: https://fr.wikipedia.org/wiki/Pr%C3%A9fixes_du_Syst%C3%A8me_international_d%27unit%C3%A9s
+ * 
+ * @param {number|string} value Value to convert
+ * @param {string} fromUnit Unit of input value
+ * @param {string} toUnit Unit of return value
+ * @returns {string} value converted
+ */
+function convertUnit(value, fromUnit, toUnit) {
+    if (fromUnit==undefined || toUnit==undefined) return ""+value;
+    const fvalue = parseFloat(""+value);
+    if (isNaN(fvalue)) return ""+value;
+    const symbols = Object.getOwnPropertyNames(UnitMultiplicators);
+    const fromUnitSymbol = symbols.find( u => fromUnit.startsWith(u));
+    const toUnitSymbol = symbols.find( u => toUnit.startsWith(u));
+    const fromMult = fromUnitSymbol ? UnitMultiplicators[fromUnitSymbol] : 1;
+    const toMult = toUnitSymbol ? UnitMultiplicators[toUnitSymbol] : 1;
+    return `${maxDecimal((fvalue*fromMult)/toMult,2)} ${toUnit}`;
 }
 
 /**
@@ -103,7 +151,7 @@ class AutoMap extends Map {
      * @see {@link https://www.baeldung.com/java-map-computeifabsent.}
      * @param {string} key The key element to get or create
      * @param {Function} mappingFunction The function to call to create a missing object
-     * @returns {Map<any,any>} The element at "key"
+     * @returns {any} The element at "key"
      */
     computeIfAbsent(key, mappingFunction) {
         if ( !this.has(key) ) {
@@ -149,7 +197,7 @@ class Listened {
      * Set this for event handlers
      * 
      * @param {object} evthis This for event handlers
-     * @returns {Listened} this
+     * @returns {any extends Listened ? any : Listened} This
      */
     setEventThis(evthis) {
         this.listeners.setEventThis(evthis);
@@ -161,7 +209,7 @@ class Listened {
      * 
      * @param {string} event Event name
      * @param {Function} callback Function to call on event
-     * @returns {Listened} this
+     * @returns {any extends Listened} this
      */
     on(event, callback) {
         this.listeners.getOrCreate(event).add(callback);

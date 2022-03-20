@@ -1,8 +1,10 @@
+// @ts-check
+
 import * as d3 from "https://cdn.skypack.dev/d3@7";
-import { colorScale, logDate } from "./util.js";
-import { Tooltip } from "./tooltip.js";
-import { interactiveLegend } from "./legend.js";
-import { rangeSelectorX } from "./range-selector.js";
+import { colorScale, logDate } from "./lib/util.js";
+import { Tooltip } from "./lib/tooltip.js";
+import { interactiveLegend } from "./lib/legend.js";
+import { rangeSelectorX } from "./lib/range-selector.js";
 
 export { plotBarchart };
 

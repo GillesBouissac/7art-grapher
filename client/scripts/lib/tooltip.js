@@ -1,3 +1,6 @@
+// @ts-check
+
+
 import * as d3 from "https://cdn.skypack.dev/d3@7";
 export { Tooltip };
 
@@ -10,7 +13,7 @@ class Tooltip {
     /**
      * Tooltip constructor.
      * 
-     * @param {Element} node the DOM node where this object will be attached
+     * @param {Element?} node the DOM node where this object will be attached
      */
     constructor( node ) {
         this._target = null;
@@ -52,7 +55,7 @@ class Tooltip {
      * Activate the tooltip to track the mouse over the given node,
      * Tooltip will be automatically removed when mouse leave the node.
      * 
-     * @returns {Tooltip} this
+     * @returns {Function} The show handler
      */
     show() {
         const _this = this;
@@ -70,6 +73,11 @@ class Tooltip {
         };
     }
 
+    /**
+     * Hide the tooltip
+     * 
+     * @returns {Function} The hide function
+     */
     hide() {
         const _this = this;
         return function() {
@@ -116,8 +124,8 @@ class Tooltip {
      * 
      * @returns {Tooltip} this
      */
-     onMouseLeave() {
-        return this.hide();
+    onMouseLeave() {
+        return this._hide();
     }
 
 }

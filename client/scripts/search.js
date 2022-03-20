@@ -1,12 +1,16 @@
+// @ts-check
+
 import * as d3 from "https://cdn.skypack.dev/d3@7";
 import { logDate, withoutDiacritics } from "./lib/util.js";
 import { TitleData, Serie, SerieElement, Film, detailUrl, imageUrl } from "./lib/title.js";
 import { UiLeftTray } from "./ui-left-tray.js";
 import { UiFastSearch } from "./ui-fast-search.js";
-import { UiSelectData } from "./ui-serie-selector.js";
+import { UICheckMenu } from "./ui-check-menu.js";
+
+import { UiSwitchView } from "./ui-switch-view.js";
 import { Filter, FilterPattern, FilterIntRange } from "./lib/filter.js";
-import { newSearchModel } from "./searchModel.js";
-import params from "./parameters.js";
+import { SearchModel } from "./searchModel.js";
+import parameters from "./parameters.js";
 
 export { localSearch };
 
@@ -31,27 +35,47 @@ class SearchManager {
         this.activeFilterContainer = d3.select("#activeFilterContainer");
         /** @type {d3.Selection} */
         this.activeFilterTemplate = d3.select("#Templates").select(".activeFilterTemplate");
+        
         /** @type {d3.Selection} */
-        this.cardContainer = d3.select("#cardContainer");
+        this.cardGridContainer = d3.select("#card-grid-container");
         /** @type {d3.Selection} */
-        this.cardTemplate = d3.select("#Templates").select(".cardTemplate");
-        this.resultCache = null;
+        this.cardListContainer = d3.select("#card-list-container");
+        /** @type {d3.Selection} */
+        this.cardListTitleTemplate = d3.select("#Templates").select(".card-detail-list-titles-template");
+        /** @type {d3.Selection} */
+        this.cardListItemTemplate = d3.select("#Templates").select(".card-detail-list-items-template");
+
+        /** @type {d3.Selection} */
+        this.cardGridTemplate = d3.select("#Templates").select(".card-grid-template");
+        this.cardListTemplate = d3.select("#Templates").select(".card-list-template");
+        this._dataFilteredCache = null;
+        this._serieFilteredCache = null;
         this.leftTray = new UiLeftTray();
         this.fastSearch = new UiFastSearch()
             .setEventThis(this)
             .on("change", this.onFastSearchChanged)
             ;
+        this.switchView = new UiSwitchView()
+            .setEventThis(this)
+            .on("to-grid", this.onSwitchToGrid)
+            .on("to-list", this.onSwitchToList)
+            ;
 
-        this.serieSelector = new UiSelectData()
+        this.serieSelector = new UICheckMenu(d3.select("#menu-item-select-data"), Serie.Names.title)
             .setEventThis(this)
             .on("selected", this.onDataTypeChanged)
             ;
 
-        this.model = newSearchModel()
+        this.fastSearchSelector = new UICheckMenu(d3.select("#menu-item-fast-search-scope"), Serie.SortCriterionKey)
             .setEventThis(this)
+            .on("selected", this.onFastSearchScopeChanged)
+            ;
+
+        this.model = new SearchModel();
+        this.model.setEventThis(this)
             .on("deleted", (key) => this.deleteHtmlActiveFilter(key))
             .on("created", (key, data) => this.addHtmlActiveFilter(key, data))
-            .on("restore-end", () => this.updateHtmlResults())
+            .on("restore-end", () => this.updateHtmlResults)
             ;
         this.model.restore();
     }
@@ -59,15 +83,18 @@ class SearchManager {
     start() {
         // Graph initialisation from data
         const _this = this;
-        const dataPath = params.databaseLocation;
+        const dataPath = parameters.databaseLocation;
         console.log(`${logDate()} Request ${dataPath}`);
         d3.json(dataPath)
             .then(function (content) {
+                console.log(`${logDate()} Data received`);
                 const data = new TitleData();
                 data.parse(content);
-                _this.model.data(data);
-                _this.serieSelector.series(
-                    data.columns().filter(c => Object.keys(Serie.PictureUrls).includes(c)));
+                _this.model.setData(data);
+                _this.serieSelector.items(
+                    data.columns().filter(c => Serie.getSeriesWithPicture().includes(c)));
+                _this.fastSearchSelector.items(
+                    [Serie.SortCriterionKey].concat(data.columns()));
                 _this.activateDisplay();
             });
     }
@@ -76,7 +103,7 @@ class SearchManager {
      * Display the popup showing copy result
      * 
      * @param {string} text Popup message
-     * @param {boolean?} error True if this is an error
+     * @param {boolean=} error True if this is an error
      */
     showCopyResult(text, error) {
         const err = error==undefined ? false : error;
@@ -108,9 +135,9 @@ class SearchManager {
          * The menu-item-copy button handler
          */
         return function () {
-            if (_this.resultCache) {
+            if (_this._serieFilteredCache) {
                 const urls = [];
-                _this.resultCache.forEach(se => {
+                _this._serieFilteredCache.forEach(se => {
                     const vars = _this.model.buildPatternVariables(se);
                     const imgUrl = detailUrl(_this.serieSelector.selected(), vars);
                     if (imgUrl) urls.push(imgUrl);
@@ -135,24 +162,45 @@ class SearchManager {
     }
 
     /**
+     * Data selection change handler
+     */
+     onDataTypeChanged() {
+        this.model.save();
+        this.updateHtmlResults();
+    }
+
+    /**
+     * Fast search scope change handler
+     */
+    onFastSearchScopeChanged() {
+        this.onFastSearchChanged(this.fastSearch.value());
+    }
+
+    /**
      * Fast search text change handler
      * 
      * @param {string} text Current fast search pattern
      */
-    onFastSearchChanged(text) {
+     onFastSearchChanged(text) {
         this.model.cleanSerieFilters();
         if (text && text.length>0) {
-            const filter = new FilterPattern(this.serieSelector.selected(), text);
+            const filter = new FilterPattern(this.fastSearchSelector.selected(), text);
             this.model.addSerieFilter(filter);
         }
         this.updateHtmlResults(false);
     }
 
     /**
-     * Data selection change handler
+     * User switched in grid mode
      */
-    onDataTypeChanged() {
-        this.model.save();
+    onSwitchToGrid() {
+        this.updateHtmlResults();
+    }
+
+    /**
+     * User switched in list mode
+     */
+    onSwitchToList() {
         this.updateHtmlResults();
     }
 
@@ -262,18 +310,20 @@ class SearchManager {
      * Creates a new Card to display the given SerieElement
      * 
      * @param {SerieElement} se The element do display on the card
+     * @param {boolean} modeGrid True if we need a grid card, false for a list card
      * @returns {d3.selection} The created card element
      */
-    newHtmlCard(se) {
-        const newCard = this.cardTemplate.clone(true).remove();
+    newHtmlCard(serie, se, modeGrid) {
+        const template = modeGrid ? this.cardGridTemplate : this.cardListTemplate;
+        const newCard = template.clone(true).remove();
         const vars = this.model.buildPatternVariables(se);
         const imgUrl = imageUrl(this.serieSelector.selected(), vars);
         const detUrl = detailUrl(this.serieSelector.selected(), vars);
         if (imgUrl) {
-            newCard.selectAll(".cardTemplateImage").attr("src", imgUrl);
+            newCard.selectAll(".card-template-image").attr("src", imgUrl);
         }
         if (detUrl) {
-            newCard.selectAll(".cardTemplateUrl").attr("href", detUrl);
+            newCard.selectAll(".card-template-url").attr("href", detUrl);
         }
         newCard
             .selectAll(".card-title")
@@ -290,19 +340,19 @@ class SearchManager {
             newCard.selectAll(".card-title-year")
                 .text(`${year}`)
                 .classed("show", year!=undefined);
-            newCard.selectAll(".card-title-imdb")
+            newCard.selectAll(".card-title-imdbr")
                 .text(`${imdbr}`)
                 .classed("rating-low", imdbr<4)
                 .classed("rating-medium", 4<=imdbr && imdbr<7)
                 .classed("rating-high", 7<=imdbr)
                 .classed("show", imdbr!=undefined);
-            newCard.selectAll(".card-title-tmdb")
+            newCard.selectAll(".card-title-tmdbr")
                 .text(`${tmdbr}`)
                 .classed("rating-low", tmdbr<4)
                 .classed("rating-medium", 4<=tmdbr && tmdbr<7)
                 .classed("rating-high", 7<=tmdbr)
                 .classed("show", tmdbr!=undefined);
-            newCard.selectAll(".card-title-tomatoe")
+            newCard.selectAll(".card-title-tomatoer")
                 .text(`${tomatoe}`)
                 .classed("rating-low", tomatoe<60)
                 .classed("rating-high", tomatoe>=60)
@@ -310,9 +360,41 @@ class SearchManager {
         }
         else {
             newCard.selectAll(".card-title2")
-                .text(`${films.length} movies`);
+                .html(`<div class="bi bi-film mt-1 me-1">&nbsp;</div><div>${films.length}</div>`);
+        }
+        if ( !modeGrid ) {
+            const layout = this.model._data.series(serie).getSerielistLayout(se);
+            if (layout) {
+                newCard.select(".card-detail-list-titles")
+                    .selectAll(".card-detail-list-titles-template")
+                    .data(layout.outline, d => d[0])
+                    .join(enter => enter
+                        .append((d) => this.newCardListItem(this.cardListTitleTemplate, d[0], d[1]).node())
+                    );
+                newCard.select(".card-detail-list-items")
+                    .selectAll(".card-detail-list-items-template")
+                    .data(layout.detail, d => d[0])
+                    .join(enter => enter
+                        .append((d) => this.newCardListItem(this.cardListItemTemplate, d[0], d[1]).node())
+                    );
+                newCard.select(".card-detail-list-overlay")
+                    .on("click", function(e) {
+                        e.preventDefault();
+                        const p = d3.select(this.parentNode);
+                        const a = p.select(".down-arrow-container");
+                        a.classed("show", a.classed("show") ? false : true)
+                        p.style("max-height", a.classed("show") ? null : "max-content" )
+                    })
+            }
         }
         return newCard;
+    }
+
+    newCardListItem(template, name, text) {
+        const newItem = template.clone(true).remove();
+        newItem.select("dt").text(name)
+        newItem.select("dd").text(text)
+        return newItem;
     }
 
     /**
@@ -321,35 +403,48 @@ class SearchManager {
      * @returns {SearchManager} This
      */
     updateCache() {
-        this.resultCache = this.model.getFilteredData(this.serieSelector.selected());
+        this._dataFilteredCache = this.model.getFilteredData(this.serieSelector.selected());
         return this;
     }
 
     /**
      * Refreshes the result list.
      * 
-     * @param {boolean} withCache True to reset the cache from film filters
+     * @param {boolean=} withCache True to reset the cache from film filters
      * @returns {SearchManager} This
      */
     updateHtmlResults(withCache) {
+        const _this = this;
         if (withCache==undefined || withCache) {
             this.updateCache();
         }
         const filters = this.model.getSerieFilters();
-        const list = this.resultCache
-            .filter(se => {
-                return filters.every(flt => flt.match(se.name()));
-            })
+        this._serieFilteredCache = this._dataFilteredCache
+            .filter(se =>
+                filters.every(flt =>
+                    flt.match(se.summary(flt.criterion))
+                )
+            )
             .slice(0, SearchManager.CARDS_PER_PAGE)
             ;
 
-        const _this = this;
-        this.cardContainer.selectAll(".cardTemplate")
-            .data(list, se => se.name())
-            .join(
-                enter => enter
-                    .append((se) => _this.newHtmlCard(se).node())
-                    .style("display", "block")
+        const modeGrid = this.switchView.isModeGrid();
+        const dataGrid = modeGrid ? this._serieFilteredCache : [];
+        const dataList = modeGrid ? [] : this._serieFilteredCache;
+        const serie = this.serieSelector.selected();
+        this.cardGridContainer
+            .classed("show", modeGrid)
+            .selectAll(".card-grid-template")
+            .data(dataGrid, se => se.name())
+            .join( enter => enter
+                    .append((se) => _this.newHtmlCard(serie, se, modeGrid).node())
+            );
+        this.cardListContainer
+            .classed("show", !modeGrid)
+            .selectAll(".card-list-template")
+            .data(dataList, se => se.name())
+            .join( enter => enter
+                    .append((se) => _this.newHtmlCard(serie, se, modeGrid).node())
             );
         return this;
     }
@@ -362,7 +457,7 @@ class SearchManager {
         const listParent = d3.select("#newFilterSearchList");
         if (flt && flt.type == Serie.TypeString) {
             if (flt.regex) {
-                const serie = this.model.data().series(flt.criterion);
+                const serie = this.model.getData().series(flt.criterion);
                 const serieVals = [...serie.values()]
                     .map(se => se.name())
                     .filter(e => flt.regex.test(withoutDiacritics(e)))
@@ -387,7 +482,7 @@ class SearchManager {
     /**
      * Builds a new active filter given by its key in the GUI.
      * 
-     * @param {number} filterKey Key of the filter to create
+     * @param {string} filterKey Key of the filter to create
      * @param {Filter} filter Data of the filter to create
      */
     addHtmlActiveFilter(filterKey, filter) {
@@ -466,7 +561,7 @@ class SearchManager {
     /**
      * Returns the parameters of the filter parameters ready to activate.
      * 
-     * @returns {Filter|null} Filter data
+     * @returns {Filter} Filter data
      */
     getNewFilterHtml() {
         const filteredData = d3.select("#newFilterTypeSelector").property("value");
@@ -502,11 +597,25 @@ class SearchManager {
             .on("click", this.buildOnFilterAdd());
         d3.select("#menu-item-copy")
             .on("click", this.buildOnCopyLinksButton());
-        this.model.data().columns()
+        this.model.getData().columns()
             .forEach(c => {
                 d3.select("#newFilterTypeSelector")
                     .append("option").text(c);
             });
+        d3.select("html").on('click.card-close', function(e) {
+            //var isClickInsideElement = ignoreClickOnMeElement.contains(e.target);
+            const parent = e.target.parentNode;
+            d3.selectAll(".card-detail-list-overlay")
+                .each(function() {
+                    if ( parent!=this.parentNode ) {
+                        d3.select(this.parentNode)
+                            .style("max-height", null )
+                            .select(".down-arrow-container")
+                            .classed("show", true)
+                    }
+                })
+                ;
+        })
 
         this.onDataTypeChanged();
         this.updateHtmlFilterAdd();

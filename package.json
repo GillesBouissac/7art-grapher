@@ -6,6 +6,7 @@
     "server": "server/server.js"
   },
   "dependencies": {
+    "@types/d3": "^7.1.0",
     "axios": "^0.25.0"
   },
   "devDependencies": {

@@ -22,4 +22,13 @@ class UiFastSearch extends Listened {
             .on("input", () => this.fire("change", this.input.property("value")))
             ;
     }
+
+    /**
+     * Accessor to current filter text
+     * 
+     * @returns {string} Input field value
+     */
+    value() {
+        return this.input.property("value");
+    }
 }

@@ -2,17 +2,7 @@ import { Listened } from "./lib/util.js";
 import { TitleData, Serie, SerieElement } from "./lib/title.js";
 import { Filter, FilterPattern, FilterIntRange } from "./lib/filter.js";
 
-export { newSearchModel };
 export { SearchModel };
-
-/**
- * Returns a filter manager.
- * 
- * @returns {SearchModel} The new filter manager
- */
-function newSearchModel() {
-    return new SearchModel();
-}
 
 /**
  * Class for filter management.
@@ -37,16 +27,22 @@ class SearchModel extends Listened {
     }
 
     /**
-     * Getter/Setter for indexed data
+     * Setter for indexed data
      * 
-     * @param {TitleData|null} dataIn Indexed data
-     * @returns {SearchModel|TitleData} This (setter) or indexed data (getter)
+     * @param {TitleData} dataIn Indexed data
+     * @returns {SearchModel} this
      */
-    data(dataIn) {
-        if (dataIn) {
-            this._data = dataIn;
-            return this;
-        }
+    setData(dataIn) {
+        this._data = dataIn;
+        return this;
+    }
+
+    /**
+     * Getter for indexed data
+     * 
+     * @returns {TitleData} Indexed data
+     */
+    getData() {
         return this._data;
     }
 
@@ -194,7 +190,7 @@ class SearchModel extends Listened {
     /**
      * Returns the list of serie filters
      * 
-     * @returns {SerieElement[]} Matching data
+     * @returns {Filter[]} Matching data
      */
     getSerieFilters() {
         return [...this.serieFilters.values()];

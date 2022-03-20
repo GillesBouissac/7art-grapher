@@ -1,36 +1,34 @@
+// @ts-check
 import * as d3 from "https://cdn.skypack.dev/d3@7";
 import { Listened } from "./lib/util.js";
-import { Serie } from "./lib/title.js";
 
-export { UiSelectData };
+export { UICheckMenu };
 
 /**
- * Class to handle the left tray of the page
+ * Class to handle a checkbox selector menu opened with a button in the menu bar
  * 
  * Fired events:
- *   - "selected": function(serie)
+ *   - "selected": function(item)
  */
-class UiSelectData extends Listened {
-    static SERIE_DEFAULT = Serie.Names.title;
+class UICheckMenu extends Listened {
 
     /**
      * Construtor to set the handlers
+     * 
+     * @param {d3.Selection} menuItem The menu item that will control the menu
+     * @param {string} defaultItem Default selected label
      */
-    constructor() {
+    constructor(menuItem, defaultItem) {
         super();
 
-        /** @type {string[]} List of series to choose */
-        this._series = null;
-        /** @type {string} Current selected serie */
-        this._selected = UiSelectData.SERIE_DEFAULT;
+        /** @type {string[]} List of items to choose */
+        this._items = [];
+        /** @type {string} Current selected item */
+        this._selected = defaultItem;
         /** @type {boolean} The menu is opened or closed */
         this.opened = false;
-
-        // Needed to guess drag direction
         /** @type {d3.Selection} */
         this.body = d3.select("body");
-        /** @type {d3.Selection} */
-        this.menuToggle = d3.select("#menu-item-select-data");
         /** @type {d3.Selection} */
         this.box = d3.select("#select-data-position");
         /** @type {d3.Selection} */
@@ -38,35 +36,38 @@ class UiSelectData extends Listened {
         /** @type {d3.Selection} */
         this.template = d3.select("#Templates").select(".select-data-item-template");
 
+        /** @type {d3.Selection} */
+        this.menuToggle = menuItem;
+
         this.menuToggle
-            .on("click.select-data", this.buildOnToggle());
+            .on(`click.select-data-${this.menuToggle.attr("id")}`, this.buildOnToggle());
         this.body
-            .on("click.select-data", this.buildOnClickBackground());
+            .on(`click.select-data-${this.menuToggle.attr("id")}`, this.buildOnClickBackground());
     }
 
     /**
-     * Getter/Setter for indexed data
+     * Getter/Setter for menu items
      * 
-     * @param {string[]|null} seriesIn list of series
-     * @returns {UiSelectData|string[]} This (setter) or list of series (getter)
+     * @param {string[]|null} items List of menu items labels to set (setter)
+     * @returns {UICheckMenu|string[]} This (setter) or list of items (getter)
      */
-    series(seriesIn) {
-        if (seriesIn) {
-            this._series = seriesIn;
+    items(items) {
+        if (items) {
+            this._items = items;
             return this;
         }
-        return this._series;
+        return this._items;
     }
 
     /**
      * Getter/Setter for current selected item
      * 
-     * @param {string} serie list of series
-     * @returns {UiSelectData|string} This (setter) or selected serie (getter)
+     * @param {string} item Item to select (setter)
+     * @returns {UICheckMenu|string} This (setter) or selected item (getter)
      */
-    selected(serie) {
-        if (serie) {
-            this._selected = serie;
+    selected(item) {
+        if (item) {
+            this._selected = item;
             this.fire("selected", this._selected);
             return this;
         }
@@ -74,18 +75,18 @@ class UiSelectData extends Listened {
     }
 
     /**
-     * Creates a new serie item to display the given serie
+     * Creates a new item in the menu with given label
      * 
-     * @param {string} serie The current serie name
+     * @param {string} label The new item label
      * @returns {d3.selection} The created element
      */
-    newItem(serie) {
+    newItem(label) {
         const newElement = this.template.clone(true).remove();
         newElement.selectAll(".select-data-item-label")
-            .attr("for", `select-item-${serie}`)
-            .text(serie);
+            .attr("for", `select-item-${label}`)
+            .text(label);
         newElement.selectAll(".select-data-item-input")
-            .attr("id", `select-item-${serie}`);
+            .attr("id", `select-item-${label}`);
         return newElement;
     }
 
@@ -95,12 +96,16 @@ class UiSelectData extends Listened {
     open() {
         const _this = this;
         this.opened = false;
-        if (this._series) {
-            this.list.selectAll(".select-data-item-template")
-                .data(this._series)
+        if (this._items) {
+            this.list
+                .selectAll(".select-data-item-template")
+                .remove();
+            this.list
+                .selectAll(".select-data-item-template")
+                .data(this._items)
                 .join(
                     enter => enter
-                        .append((serie) => _this.newItem(serie).node())
+                        .append((label) => _this.newItem(label).node())
                         .on("click", _this.buildOnSelected())
                 )
                 .select(".select-data-item-input")
@@ -158,24 +163,24 @@ class UiSelectData extends Listened {
     }
 
     /**
-     * Build a menu-item-open-left handler bound to this object
+     * Build a menu-item-select-data handler bound to this object
      * 
      * @returns {Function} Callback for event
      */
     buildOnToggle() {
         const _this = this;
         /**
-         * The menu-item-open-left button handler
+         * The button handler
          * 
          * @param {d3.event} e event
          */
         return function(e) {
             if (_this.opened) {
-                _this.close(e);
+                _this.close();
                 e.stopPropagation();
             }
             else {
-                _this.open(e);
+                _this.open();
                 e.stopPropagation();
             }
         };
